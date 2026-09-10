@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
 T=plugins/core/templates
-for f in AGENTS.md CLAUDE.md README.md CHANGELOG.md SECURITY.md lefthook.yml \
+for f in AGENTS.md CLAUDE.md README.md CHANGELOG.md SECURITY.md DESIGN.md lefthook.yml \
   public/.well-known/security.txt .claude/settings.json \
   .claude/rules/database.md .claude/rules/api.md .claude/rules/frontend.md \
   docs/dev/architecture.md docs/dev/decisions/0000-template.md \
