@@ -18,4 +18,10 @@ assert_contains "$(cat lefthook.yml)" "$ROOT/scripts/design-lint.sh" "plugin roo
 [ -f docs/dev/architecture.md ] && echo "  ok  docs tree" || { echo "  FAIL docs tree"; FAILS=$((FAILS+1)); }
 [ -f .claude/rules/database.md ] && echo "  ok  rules" || { echo "  FAIL rules"; FAILS=$((FAILS+1)); }
 out2=$(bash "$A" "$T"); assert_contains "$out2" 'skipped (exists): AGENTS.md' "idempotent"
-cd - >/dev/null; rm -rf "$(dirname "$T")"; finish
+cd - >/dev/null; rm -rf "$(dirname "$T")"
+
+T2=$(mktemp -d)/a\&b; mkdir -p "$T2"; cd "$T2"; git init -q
+bash "$A" "$T2" >/dev/null
+assert_contains "$(cat AGENTS.md)" '# a&b' "project name with & escaped correctly"
+cd - >/dev/null; rm -rf "$(dirname "$T2")"
+finish

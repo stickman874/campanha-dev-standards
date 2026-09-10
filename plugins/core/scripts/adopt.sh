@@ -8,13 +8,15 @@ tenant=single
 while [ $# -gt 0 ]; do case "$1" in --tenant) tenant=$2; shift 2;; *) shift;; esac; done
 cd "$dir" || exit 1
 project=$(basename "$PWD")
+esc() { printf '%s' "$1" | sed -e 's/[\/&\\#]/\\&/g'; }
+p=$(esc "$project"); r=$(esc "$ROOT")
 
 created=(); skipped=(); review=()
 while IFS= read -r -d '' src; do
   rel=${src#"$TPL"/}
   if [ -e "$rel" ]; then skipped+=("$rel"); continue; fi
   mkdir -p "$(dirname "$rel")"
-  sed -e "s/{{PROJECT}}/$project/g" -e "s/{{TENANT}}/$tenant/g" -e "s#\${CAMPANHA_PLUGIN_ROOT:-[^}]*}#$ROOT#g" "$src" > "$rel"
+  sed -e "s/{{PROJECT}}/$p/g" -e "s/{{TENANT}}/$tenant/g" -e "s#\${CAMPANHA_PLUGIN_ROOT:-[^}]*}#$r#g" "$src" > "$rel"
   created+=("$rel")
 done < <(find "$TPL" -type f -print0 | sort -z)
 
@@ -28,6 +30,6 @@ ls docs 2>/dev/null | grep -vqE '^(dev|product)$' && review+=("docs/* outside de
 grep -Eq '"(vitest|jest|@playwright/test)"' package.json 2>/dev/null || review+=("no test runner in package.json")
 
 if command -v lefthook >/dev/null; then lefthook install >/dev/null 2>&1 && echo "lefthook: installed"; else echo "lefthook: NOT installed (run install.sh)"; fi
-for x in "${created[@]}";  do echo "created: $x"; done
-for x in "${skipped[@]}";  do echo "skipped (exists): $x"; done
-for x in "${review[@]}";   do echo "needs-review: $x"; done
+for x in ${created[@]+"${created[@]}"}; do echo "created: $x"; done
+for x in ${skipped[@]+"${skipped[@]}"}; do echo "skipped (exists): $x"; done
+for x in ${review[@]+"${review[@]}"};   do echo "needs-review: $x"; done
