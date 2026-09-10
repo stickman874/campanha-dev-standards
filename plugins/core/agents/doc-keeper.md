@@ -27,10 +27,9 @@ Business rules are written once, in `docs/product/features/`, in user language. 
    - UI screens, user-visible behaviour → `docs/product/features/<feature>.md` (what it does, who can use it, steps, rules). If a screen changed, add the line `> Screenshot stale: <screen>` under its heading.
    - a spec or plan in this change set that lists rejected alternatives → new `docs/dev/decisions/NNNN-<kebab-title>.md` using MADR (copy `0000-template.md`, next number).
 3. Add entries under `## [Unreleased]` in `CHANGELOG.md` using Keep a Changelog headings (Added / Changed / Deprecated / Removed / Fixed / Security). One line per user-visible or developer-visible change. Never paste commit messages.
-4. Commit the docs: `git add docs CHANGELOG.md README.md AGENTS.md && git commit -m "docs: update for <short summary>"`.
-5. Write the marker for the new HEAD:
-   `d=$(git rev-parse --git-dir)/campanha; mkdir -p "$d"; touch "$d/docs-$(git rev-parse HEAD)"`
-   Also carry the review marker forward **only if** one existed for the previous HEAD (a docs-only commit does not need a second Codex round): `[ -f "$d/reviewed-<previous sha>" ] && touch "$d/reviewed-$(git rev-parse HEAD)"`.
+4. Before committing, capture the current HEAD: `prev=$(git rev-parse HEAD)`. Then commit the docs: `git add docs CHANGELOG.md README.md AGENTS.md && git commit -m "docs: update for <short summary>"`.
+5. Write the marker for the new HEAD, and carry the review marker forward **only if** one existed for the previous HEAD (a docs-only commit does not need a second Codex round):
+   `d=$(git rev-parse --git-dir)/campanha; mkdir -p "$d"; touch "$d/docs-$(git rev-parse HEAD)"; [ -f "$d/reviewed-$prev" ] && touch "$d/reviewed-$(git rev-parse HEAD)"`
 6. Report in 5 lines: files updated, features touched, ADRs created, screenshots flagged, anything you could not classify.
 
 ## Mode: bootstrap
