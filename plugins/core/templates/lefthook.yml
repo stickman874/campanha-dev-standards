@@ -9,7 +9,7 @@ pre-commit:
       run: npx eslint {staged_files}
     design-lint:
       glob: "*.{tsx,jsx,css}"
-      run: bash "${CAMPANHA_PLUGIN_ROOT:-$HOME/.claude/plugins/cache/campanha-dev-standards/core}/scripts/design-lint.sh" {staged_files}
+      run: bash scripts/design-lint.sh {staged_files}
 
 pre-push:
   commands:
