@@ -17,7 +17,7 @@ echo; echo "Installing missing tools…"
 
 have jq || { command -v apt-get >/dev/null && sudo -n apt-get install -y jq; } || echo "attempting jq install failed"
 have lefthook || npm install -g lefthook || echo "attempting lefthook install failed"
-have gitleaks || { v=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name | tr -d v); curl -sL "https://github.com/gitleaks/gitleaks/releases/download/v${v}/gitleaks_${v}_linux_x64.tar.gz" | tar -xz -C "$BIN" gitleaks; } || echo "attempting gitleaks install failed"
+have gitleaks || { if have jq; then case "$(uname -s)-$(uname -m)" in Linux-x86_64) a=linux_x64;; Linux-aarch64) a=linux_arm64;; Darwin-arm64) a=darwin_arm64;; Darwin-x86_64) a=darwin_x64;; *) a=linux_x64;; esac; v=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name | tr -d v); curl -sL "https://github.com/gitleaks/gitleaks/releases/download/v${v}/gitleaks_${v}_${a}.tar.gz" | tar -xz -C "$BIN" gitleaks; else echo "gitleaks: jq needed to resolve version; install jq first"; fi; } || echo "attempting gitleaks install failed"
 have semgrep || { have uv && uv tool install semgrep || { curl -LsSf https://astral.sh/uv/install.sh | sh && uv tool install semgrep; } || { have pipx && pipx install semgrep; }; } || echo "attempting semgrep install failed"
 have trivy || { curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b "$BIN"; } || echo "attempting trivy install failed"
 have codex || npm install -g @openai/codex || echo "attempting codex install failed"

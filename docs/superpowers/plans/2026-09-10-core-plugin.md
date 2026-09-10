@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the `core` Claude Code plugin, its marketplace repo and `install.sh`, so that `/adopt` can be run on the first pilot project (`manage`).
+**Goal:** Build the `core` Claude Code plugin, its marketplace repo and `install.sh`, so that `/adopt` can be run on the pilot project.
 
 **Architecture:** A public GitHub repo `stickman874/campanha-dev-standards` that is a Claude Code marketplace with one plugin `core`. The plugin ships shell hooks (deterministic gates), one agent (`doc-keeper`), three skills (`codex-review`, `security-posture`, `handoff`), two commands (`/adopt`, `/docs-consolidate`) and templates copied into projects. Scanners (gitleaks, semgrep, trivy) run through lefthook in each project; the plugin's hooks stop Claude from bypassing them.
 
@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - All docs, comments and commit messages in English. Claude answers in the user's language.
-- Company-agnostic: no "Between", "Matiz" or client name anywhere in the plugin.
+- Company-agnostic: no company or client name anywhere in the plugin.
 - Hooks are bash, depend only on `jq`, `git`, `grep`. Exit 0 always; deny via JSON `permissionDecision`.
 - No new runtime dependencies beyond: lefthook, gitleaks, semgrep, trivy, Playwright CLI + Chrome, Codex CLI (`codex-plugin-cc`).
 - Every shell script gets one runnable check in `tests/`. Run all with `bash tests/run.sh`.
@@ -1462,7 +1462,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" && git tag v0.1.0 && g
 - §6 conventions: Task 7 AGENTS.md/CLAUDE.md templates (language, superpowers, models, Codex three places, secrets, hosting, tenant, design, naming, ponytail lite, handoff).
 - §7 /adopt + 7.1 conflict policy: Task 9. Migration of the 10 real projects: out of scope (own plan).
 - §8 security: scanners Task 5; posture skill Task 8; SECURITY.md/security.txt/incident runbook Task 7; SBOM per release: deploy runbook step 0 (Task 7).
-- §9 rollout: Task 12 ends at "installable"; pilot on `manage` is the next plan.
+- §9 rollout: Task 12 ends at "installable"; pilot on the pilot project is the next plan.
 
 **Placeholders:** `security@example.com` in `security.txt` is intentional (edited per project). `{{PROJECT}}`/`{{TENANT}}` are substituted by adopt.sh. `2026-09-XX` in Task 12 is filled at execution.
 

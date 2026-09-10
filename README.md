@@ -19,9 +19,11 @@ Then inside Claude Code:
 
 ## What you get
 
-- Commit: gitleaks + lint + design lint (no hardcoded colours/sizes).
-- Push: typecheck + tests + semgrep + trivy. Claude cannot bypass them.
+- Commit: gitleaks + lint + design lint (no hardcoded colours/sizes). `scripts/design-lint.sh` is vendored into each project by `/adopt` — no machine-local path in the committed `lefthook.yml`.
+- Push: typecheck + tests + semgrep + trivy. Claude is blocked from bypassing them with --no-verify.
 - Claude push: Codex adversarial review + doc-keeper updates docs and CHANGELOG first.
+- `security-posture` and `handoff` skills: a judgment checklist for auth/data/API/PII diffs, and end-of-work-block handoff notes in `docs/dev/handoffs/`.
+- `/adopt [--tenant single|multi]`: bring a repo up to the standard, idempotently.
 - `docs/dev` (builders) and `docs/product` (users, manuals) kept current by `doc-keeper`.
 - `/docs-consolidate` weekly: docs vs code drift → PR.
 

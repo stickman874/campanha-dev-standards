@@ -4,7 +4,7 @@ Date: 2026-09-10 · Status: draft for owner review · Language of all docs: Engl
 
 ## 1. Purpose
 
-One development methodology for every project Pedro (PMC) works on — Between Domain, Matiz Systems and personal — that a second developer can adopt in 15 minutes and that does not depend on any single AI vendor.
+One development methodology for every project the owner works on — the owner's companies and personal — that a second developer can adopt in 15 minutes and that does not depend on any single AI vendor.
 
 Problems it must solve, in priority order:
 
@@ -20,7 +20,7 @@ Non-goals: building an orchestrator, dashboards, or company-specific "brains". H
 - Git is the source of truth. Knowledge lives in the repo, not in a model.
 - Deterministic tools where a tool exists (scanners, linters, hooks); AI only where judgment is needed (review, docs, security posture).
 - Maximum off-the-shelf: official plugins and stock binaries. Custom code is limited to what nobody sells.
-- Company-agnostic: nothing in the standard names Between, Matiz or a client. Company infra stays in the user's global `CLAUDE.md`.
+- Company-agnostic: nothing in the standard names the owner's companies or a client. Company infra stays in the user's global `CLAUDE.md`.
 - Humans approve merges to production and any doc consolidation PR.
 
 ## 3. Architecture
@@ -75,7 +75,7 @@ plugins/core/
 
 Manual pushes outside Claude get only the scanners; the weekly consolidation catches missing docs. Accepted.
 
-Tests are **mandatory** in every project (pre-push fails without a passing suite). Projects with no tests today (summa-ai, csps-calvario, between-backups) get a minimal suite during adoption.
+Tests are **mandatory** in every project (pre-push fails without a passing suite). A few of the ten existing projects have no tests today and get a minimal suite during adoption.
 
 ## 5. Documentation
 
@@ -126,7 +126,7 @@ Rules enforced by `doc-keeper`:
 - Codex (official `codex-plugin-cc`, version pinned) in three places: (1) `/codex:adversarial-review` on the **plan** before implementation starts; (2) `/codex:adversarial-review` on the **diff** before push (enforced by the push gate); (3) `/codex:rescue` only when Claude is stuck on a task, followed by a manual `git diff` check because Codex can report "done" without changes. Codex never implements by default; alternating Claude/Codex per task is out. Revisit `claudex-loop` after two months.
 - Secrets local only; only `.env.example` in the repo.
 - Hosting: Dokploy on Hetzner by default; Vercel allowed per project (declared in `AGENTS.md`).
-- Multi-tenant projects (manage, patrimonio, splitnice, summa-ai): row-level isolation enforced in the database, never only in app code. Single-tenant projects declare `tenant: single` and skip the rule.
+- The four multi-tenant projects: row-level isolation enforced in the database, never only in app code. Single-tenant projects declare `tenant: single` and skip the rule.
 - Design: `DESIGN.md` mandatory; every screen uses global tokens and canonical components; anything missing is added globally, never inline. Pre-commit design lint enforces it.
 - Naming: kebab-case files, PascalCase components, UPPER_SNAKE constants, snake_case DB.
 - Ponytail as philosophy at level **lite**, with the caveat: "smallest change at the right level — colours, components and business rules are fixed at the source, never in the screen".
@@ -140,7 +140,7 @@ Runs once per repo. Idempotent.
 3. **Migration mode** (all 10 current projects): run `doc-keeper` in bootstrap over the existing repo — existing `docs/*`, root `PRD.md`/`PRODUCT.md`/`RESUMO_PROJETO.md`, `.planning/`, oversized `CLAUDE.md` — and distribute content into the new tree. Produces a PR for human review; nothing deleted until approved.
 4. Rewrite `CLAUDE.md` to the short template; move project specifics into `AGENTS.md` (≤ 180 lines) and `.claude/rules/`. Strip credentials found in instructions (e.g. seed passwords).
 5. Add a minimal test suite if none exists so pre-push can run.
-6. Report: what was created, what was moved, what needs a human decision (e.g. the manage/patrimonio contradictions).
+6. Report: what was created, what was moved, what needs a human decision (e.g. contradictions between two projects sharing a codebase).
 
 ### 7.1 Conflict resolution during `/adopt`
 
@@ -151,7 +151,7 @@ Existing instructions will contradict the standard. Fixed policy, applied by the
 | Project rule contradicts a **security or gate** rule (secrets, `--no-verify`, `db push`, tests) | Standard wins. Old rule removed. Listed in the report. |
 | Project rule contradicts a **convention** (naming, hosting, typography, folder roles) | Standard wins **unless** the project keeps it as a declared exception: an `## Exceptions` section in `AGENTS.md` with the rule and a one-line reason (e.g. `hosting: vercel — client contract`). `/adopt` proposes the exception, the human confirms. |
 | Project rule is **more specific** than the standard (domain rules, stack quirks) | Not a conflict. Kept in `AGENTS.md` or `.claude/rules/`. |
-| Two projects sharing a codebase disagree with each other (manage vs patrimonio) | Neither is migrated on that point; the item goes to a `docs/dev/decisions/` draft ADR with both options, resolved once by the human, then applied to both. |
+| Two projects sharing a codebase disagree with each other | Neither is migrated on that point; the item goes to a `docs/dev/decisions/` draft ADR with both options, resolved once by the human, then applied to both. |
 | Rule cannot be classified | Left untouched, flagged `NEEDS DECISION` in the report. |
 
 Nothing is deleted before the human reviews the adopt PR. Exceptions are the only mechanism for divergence; undeclared divergence is a lint failure in the weekly consolidation.
@@ -166,15 +166,15 @@ Documents: `SECURITY.md` + `public/.well-known/security.txt`; `docs/dev/how-to/i
 
 ## 9. Rollout
 
-1. Done today: removed embedded token from `canal-denuncias` remote; unified git identity (PMC, `pmc@betweendomain.pt`; stickman874 noreply on personal repos).
-2. Build `core` plugin + `install.sh` (one session). Test with `--plugin-dir` on `manage`.
-3. Pilot: `/adopt` on `manage` for two weeks with both developers.
-4. Adopt the remaining 9 projects. Resolve the recorded contradictions (typography for numbers, `components/ui` role, RLS function) once, for manage + patrimonio together.
+1. Done today: unified git identity (one name/email across the owner's companies; a separate noreply identity for personal repos).
+2. Build `core` plugin + `install.sh` (one session). Test with `--plugin-dir` on the pilot project.
+3. Pilot: `/adopt` on the pilot project for two weeks with both developers.
+4. Adopt the remaining 9 projects. Resolve the recorded contradictions (typography for numbers, `components/ui` role, RLS function) once, for the two projects sharing a codebase together.
 5. Revisit after two months: Semgrep Guardian, `claude-security` scheduling, anything from the partner's "phase 3" that is still missing.
 
 ## 10. Open items
 
 - GitHub home for the marketplace repo (org vs personal).
-- Contradictions between manage and patrimonio (owner declined to decide now; recorded for the pilot).
+- Contradictions between the two projects sharing a codebase (owner declined to decide now; recorded for the pilot).
 - Whether the weekly consolidation runs as a Claude `/schedule` routine or via the existing cron-based agent pattern from the vault.
 - Codebase map tooling (graphify/Serena/claude-mem): none adopted; revisit Serena on the largest repo if navigation pain persists after two weeks of docs-in-repo. Graphify star count looks inflated (2026-09-10 research).
