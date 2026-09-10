@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Deterministic half of /adopt: copy templates (never overwrite), substitute placeholders, install lefthook, report.
+set -u
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+TPL="$ROOT/templates"
+dir=${1:?usage: adopt.sh <project-dir> [--tenant single|multi]}; shift
+tenant=single
+while [ $# -gt 0 ]; do case "$1" in --tenant) tenant=$2; shift 2;; *) shift;; esac; done
+cd "$dir" || exit 1
+project=$(basename "$PWD")
+
+created=(); skipped=(); review=()
+while IFS= read -r -d '' src; do
+  rel=${src#"$TPL"/}
+  if [ -e "$rel" ]; then skipped+=("$rel"); continue; fi
+  mkdir -p "$(dirname "$rel")"
+  sed -e "s/{{PROJECT}}/$project/g" -e "s/{{TENANT}}/$tenant/g" -e "s#\${CAMPANHA_PLUGIN_ROOT:-[^}]*}#$ROOT#g" "$src" > "$rel"
+  created+=("$rel")
+done < <(find "$TPL" -type f -print0 | sort -z)
+
+# things a human / doc-keeper bootstrap must look at
+[ -f CLAUDE.md ] && [ "$(wc -l < CLAUDE.md)" -gt 20 ] && review+=("CLAUDE.md ($(wc -l < CLAUDE.md) lines; move content to AGENTS.md / .claude/rules / docs)")
+[ -f AGENTS.md ] && [ "$(wc -l < AGENTS.md)" -gt 180 ] && review+=("AGENTS.md (>180 lines)")
+for f in PRD.md PRODUCT.md DESIGN.md RESUMO_PROJETO.md handoff.md RESUME.md .claude/RESUME.md; do [ -e "$f" ] && review+=("$f (root doc; doc-keeper bootstrap distributes it)"); done
+[ -d .planning ] && review+=(".planning (archive into docs/dev/research, then delete)")
+ls docs 2>/dev/null | grep -vqE '^(dev|product)$' && review+=("docs/* outside dev|product (doc-keeper bootstrap)")
+{ ls -d tests test __tests__ e2e 2>/dev/null | grep -q .; } || find . -path ./node_modules -prune -o -name '*.test.*' -print 2>/dev/null | grep -q . || review+=("no tests (pre-push will fail until a minimal suite exists)")
+grep -Eq '"(vitest|jest|@playwright/test)"' package.json 2>/dev/null || review+=("no test runner in package.json")
+
+if command -v lefthook >/dev/null; then lefthook install >/dev/null 2>&1 && echo "lefthook: installed"; else echo "lefthook: NOT installed (run install.sh)"; fi
+for x in "${created[@]}";  do echo "created: $x"; done
+for x in "${skipped[@]}";  do echo "skipped (exists): $x"; done
+for x in "${review[@]}";   do echo "needs-review: $x"; done
