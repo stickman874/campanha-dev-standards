@@ -1,0 +1,7 @@
+{
+  "name": "core",
+  "version": "0.1.0",
+  "description": "Gates, living documentation and security posture for every project.",
+  "author": { "name": "PMC", "url": "https://github.com/stickman874" },
+  "hooks": "./hooks/hooks.json"
+}
