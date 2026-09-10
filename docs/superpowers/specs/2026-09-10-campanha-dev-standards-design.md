@@ -122,7 +122,8 @@ Rules enforced by `doc-keeper`:
 
 - Claude answers in the user's language; **all docs and code comments in English**; product UI in pt-PT unless the project says otherwise.
 - Method: superpowers. Brainstorm → plan → **owner approval** → implement with subagents → verify. No GSD.
-- Models: planning with the active model; implementation subagents Sonnet (Haiku where it suffices); **Codex adversarial review is mandatory before push**; visual verification by a Sonnet subagent in headed Chrome using playwright, screenshots deleted afterwards.
+- Models: planning with the active model; implementation subagents Sonnet (Haiku where it suffices); visual verification by a Sonnet subagent in headed Chrome using playwright, screenshots deleted afterwards.
+- Codex (official `codex-plugin-cc`, version pinned) in three places: (1) `/codex:adversarial-review` on the **plan** before implementation starts; (2) `/codex:adversarial-review` on the **diff** before push (enforced by the push gate); (3) `/codex:rescue` only when Claude is stuck on a task, followed by a manual `git diff` check because Codex can report "done" without changes. Codex never implements by default; alternating Claude/Codex per task is out. Revisit `claudex-loop` after two months.
 - Secrets local only; only `.env.example` in the repo.
 - Hosting: Dokploy on Hetzner by default; Vercel allowed per project (declared in `AGENTS.md`).
 - Multi-tenant projects (manage, patrimonio, splitnice, summa-ai): row-level isolation enforced in the database, never only in app code. Single-tenant projects declare `tenant: single` and skip the rule.
