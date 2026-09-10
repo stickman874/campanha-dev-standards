@@ -16,11 +16,11 @@ if have npx && npx --no-install playwright --version >/dev/null 2>&1; then echo 
 echo; echo "Installing missing tools…"
 
 have jq || { command -v apt-get >/dev/null && sudo -n apt-get install -y jq; } || echo "attempting jq install failed"
-npm install -g lefthook || echo "attempting lefthook install failed"
+have lefthook || npm install -g lefthook || echo "attempting lefthook install failed"
 have gitleaks || { v=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name | tr -d v); curl -sL "https://github.com/gitleaks/gitleaks/releases/download/v${v}/gitleaks_${v}_linux_x64.tar.gz" | tar -xz -C "$BIN" gitleaks; } || echo "attempting gitleaks install failed"
 have semgrep || { have uv && uv tool install semgrep || { curl -LsSf https://astral.sh/uv/install.sh | sh && uv tool install semgrep; } || { have pipx && pipx install semgrep; }; } || echo "attempting semgrep install failed"
 have trivy || { curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b "$BIN"; } || echo "attempting trivy install failed"
-npm install -g @openai/codex || echo "attempting codex install failed"
+have codex || npm install -g @openai/codex || echo "attempting codex install failed"
 npx --yes playwright install chrome >/dev/null 2>&1 && echo "ok       playwright chrome"
 
 echo; echo "Checking final status…"
