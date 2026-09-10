@@ -13,6 +13,8 @@ Then inside Claude Code:
     /plugin marketplace add openai/codex-plugin-cc
     /plugin install codex@openai-codex
 
+Pin the Codex plugin version after installing: `/plugin install codex@openai-codex@<version>` (check `/plugin list`).
+
 ## Bring a project up to standard (once per repo)
 
     /adopt

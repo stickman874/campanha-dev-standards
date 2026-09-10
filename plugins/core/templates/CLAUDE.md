@@ -7,3 +7,4 @@
 - Visual verification: a Sonnet subagent drives headed Chrome via Playwright (viewports 1440×900 and 390×844), then deletes screenshots.
 - Ponytail level lite: smallest change at the right level — colours, components and business rules are fixed at the source, never in the screen.
 - End of a work block: `handoff` skill.
+- When stuck on a task: `/codex:rescue`, then verify with `git diff` before trusting its "done".
