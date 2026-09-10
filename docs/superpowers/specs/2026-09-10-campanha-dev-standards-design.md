@@ -27,7 +27,7 @@ Non-goals: building an orchestrator, dashboards, or company-specific "brains". H
 
 ### 3.1 Distribution
 
-- Repo `campanha-dev-standards` (GitHub, `pmc-between` org or `stickman874`; owner's choice) is a **Claude Code plugin marketplace** with one plugin, `core`.
+- Repo `stickman874/campanha-dev-standards` (public, personal GitHub) is a **Claude Code plugin marketplace** with one plugin, `core`.
 - Install once per person: `/plugin marketplace add <owner>/campanha-dev-standards` then `/plugin install core@campanha-dev-standards`. Update with `/plugin update`.
 - Each repo carries `.claude/settings.json` with `enabledPlugins: {"core@campanha-dev-standards": true}` so a fresh clone activates the plugin on trust.
 - Development of the plugin itself: `claude --plugin-dir ./plugins/core`.
@@ -36,8 +36,8 @@ Non-goals: building an orchestrator, dashboards, or company-specific "brains". H
 
 | Layer | Component | Source |
 |---|---|---|
-| Official plugins | `superpowers` (method), `codex-plugin-cc` (OpenAI; Codex as reviewer), `claude-security` (deep audit on demand), `impeccable` (design system) | marketplaces |
-| Binaries | `lefthook`, `gitleaks`, `semgrep`, `trivy` | `install.sh` in this repo |
+| Official plugins | `superpowers` (method), `codex-plugin-cc` (OpenAI; Codex as reviewer), `claude-security` (deep audit on demand), `impeccable` (design system), `playwright` (browser verification) | marketplaces |
+| Binaries | `lefthook`, `gitleaks`, `semgrep`, `trivy`, Playwright CLI + Chrome (`npx playwright install chrome`) | `install.sh` in this repo |
 | Plugin `core` (custom) | 2 hooks, 1 agent, 2 skills, 1 command, templates | this repo |
 
 Semgrep Guardian (per-file live scanning) is **deferred**: start with semgrep in pre-push; enable Guardian only if pre-push security failures become frequent.
@@ -122,7 +122,7 @@ Rules enforced by `doc-keeper`:
 
 - Claude answers in the user's language; **all docs and code comments in English**; product UI in pt-PT unless the project says otherwise.
 - Method: superpowers. Brainstorm → plan → **owner approval** → implement with subagents → verify. No GSD.
-- Models: planning with the active model; implementation subagents Sonnet (Haiku where it suffices); **Codex adversarial review is mandatory before push**; visual verification by a Sonnet subagent in headed Chrome, screenshots deleted afterwards.
+- Models: planning with the active model; implementation subagents Sonnet (Haiku where it suffices); **Codex adversarial review is mandatory before push**; visual verification by a Sonnet subagent in headed Chrome using playwright, screenshots deleted afterwards.
 - Secrets local only; only `.env.example` in the repo.
 - Hosting: Dokploy on Hetzner by default; Vercel allowed per project (declared in `AGENTS.md`).
 - Multi-tenant projects (manage, patrimonio, splitnice, summa-ai): row-level isolation enforced in the database, never only in app code. Single-tenant projects declare `tenant: single` and skip the rule.
@@ -140,6 +140,20 @@ Runs once per repo. Idempotent.
 4. Rewrite `CLAUDE.md` to the short template; move project specifics into `AGENTS.md` (≤ 180 lines) and `.claude/rules/`. Strip credentials found in instructions (e.g. seed passwords).
 5. Add a minimal test suite if none exists so pre-push can run.
 6. Report: what was created, what was moved, what needs a human decision (e.g. the manage/patrimonio contradictions).
+
+### 7.1 Conflict resolution during `/adopt`
+
+Existing instructions will contradict the standard. Fixed policy, applied by the migration and recorded in the adopt report:
+
+| Situation | Rule |
+|---|---|
+| Project rule contradicts a **security or gate** rule (secrets, `--no-verify`, `db push`, tests) | Standard wins. Old rule removed. Listed in the report. |
+| Project rule contradicts a **convention** (naming, hosting, typography, folder roles) | Standard wins **unless** the project keeps it as a declared exception: an `## Exceptions` section in `AGENTS.md` with the rule and a one-line reason (e.g. `hosting: vercel — client contract`). `/adopt` proposes the exception, the human confirms. |
+| Project rule is **more specific** than the standard (domain rules, stack quirks) | Not a conflict. Kept in `AGENTS.md` or `.claude/rules/`. |
+| Two projects sharing a codebase disagree with each other (manage vs patrimonio) | Neither is migrated on that point; the item goes to a `docs/dev/decisions/` draft ADR with both options, resolved once by the human, then applied to both. |
+| Rule cannot be classified | Left untouched, flagged `NEEDS DECISION` in the report. |
+
+Nothing is deleted before the human reviews the adopt PR. Exceptions are the only mechanism for divergence; undeclared divergence is a lint failure in the weekly consolidation.
 
 ## 8. Security & compliance checklist (enforced or reviewed)
 
