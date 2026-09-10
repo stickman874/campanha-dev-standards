@@ -177,3 +177,4 @@ Documents: `SECURITY.md` + `public/.well-known/security.txt`; `docs/dev/how-to/i
 - GitHub home for the marketplace repo (org vs personal).
 - Contradictions between manage and patrimonio (owner declined to decide now; recorded for the pilot).
 - Whether the weekly consolidation runs as a Claude `/schedule` routine or via the existing cron-based agent pattern from the vault.
+- Codebase map tooling (graphify/Serena/claude-mem): none adopted; revisit Serena on the largest repo if navigation pain persists after two weeks of docs-in-repo. Graphify star count looks inflated (2026-09-10 research).
