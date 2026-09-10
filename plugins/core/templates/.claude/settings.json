@@ -8,5 +8,6 @@
   "extraKnownMarketplaces": {
     "campanha-dev-standards": { "source": { "source": "github", "repo": "stickman874/campanha-dev-standards" } },
     "openai-codex": { "source": { "source": "github", "repo": "openai/codex-plugin-cc" } }
-  }
+  },
+  "permissions": { "deny": ["Read(./.env)", "Read(./.env.*)"], "allow": ["Read(./.env.example)"] }
 }

@@ -18,4 +18,5 @@ assert_eq true "$(jq -r '.enabledPlugins["core@campanha-dev-standards"]' $T/.cla
 assert_contains "$(cat $T/.claude/rules/database.md)" 'paths:' "rules are path-scoped"
 [ "$(wc -l < $T/AGENTS.md)" -le 180 ] && echo "  ok  AGENTS.md <= 180 lines" || { echo "  FAIL AGENTS.md too long"; FAILS=$((FAILS+1)); }
 assert_contains "$(cat $T/docs/dev/how-to/deploy.md)" 'trivy sbom' "SBOM step in deploy runbook"
+assert_eq 2 "$(jq -r '.permissions.deny | length' $T/.claude/settings.json)" ".permissions.deny has 2 entries"
 finish

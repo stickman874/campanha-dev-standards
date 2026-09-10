@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Fails open if jq is missing (cmd empty → allow); deliberate — a broken hook must not block all Bash.
 # PreToolUse/Bash on `git push`: require codex-review + doc-keeper markers for HEAD, then run lefthook pre-push.
 cmd=$(jq -r '.tool_input.command // ""')
 printf '%s' "$cmd" | grep -Eq '(^|[;&|] *)git push( |$)' || exit 0

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Fails open if jq is missing (cmd empty → allow); deliberate — a broken hook must not block all Bash.
 # PreToolUse/Bash hook: deny any command whose text contains a recognizable secret,
 # so Claude can't echo a live credential into the terminal/transcript. The fix on a
 # block is to pipe the secret from a shell var or file instead of pasting it inline.
