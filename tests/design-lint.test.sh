@@ -10,4 +10,8 @@ assert_exit 1 bash "$L" "$T/src/bad1.tsx"
 echo '<p className="text-[13px] mt-[7px]">' > "$T/src/bad2.tsx"
 assert_exit 1 bash "$L" "$T/src/bad2.tsx"
 assert_contains "$(bash "$L" "$T/src/bad2.tsx" 2>&1)" 'text-\[13px\]' "reports the offending token"
+echo '<div className="data-[state=checked]:bg-primary grid-cols-[repeat(3,1fr)]">' > "$T/src/variant.tsx"
+assert_exit 0 bash "$L" "$T/src/variant.tsx"
+echo '<div className="text-[13px]">' > "$T/src/bad3.tsx"
+assert_exit 1 bash "$L" "$T/src/bad3.tsx"
 rm -rf "$T"; finish
