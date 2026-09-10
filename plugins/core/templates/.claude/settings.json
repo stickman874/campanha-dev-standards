@@ -1,0 +1,12 @@
+{
+  "enabledPlugins": {
+    "core@campanha-dev-standards": true,
+    "superpowers@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "codex@openai-codex": true
+  },
+  "extraKnownMarketplaces": {
+    "campanha-dev-standards": { "source": { "source": "github", "repo": "stickman874/campanha-dev-standards" } },
+    "openai-codex": { "source": { "source": "github", "repo": "openai/codex-plugin-cc" } }
+  }
+}

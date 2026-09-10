@@ -1,0 +1,11 @@
+---
+paths:
+  - "prisma/**"
+  - "supabase/**"
+  - "**/migrations/**"
+---
+- Never edit a migration that has been applied anywhere; add a new one.
+- `prisma migrate dev --name <name>` only. `db push` and `migrate reset` are blocked by hook.
+- Every table with personal data is listed in `docs/dev/explanation/security.md` (PII inventory). Adding a PII column without updating it is a review failure.
+- Multi-tenant projects: every tenant-scoped table has row-level security using the tenant id in both USING and WITH CHECK. App-layer filtering is never sufficient.
+- After schema changes, `docs/dev/reference/data-model.md` must reflect them (doc-keeper does this on push; verify).

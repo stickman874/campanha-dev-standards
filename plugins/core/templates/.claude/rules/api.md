@@ -1,0 +1,12 @@
+---
+paths:
+  - "src/app/api/**"
+  - "src/lib/actions/**"
+  - "src/server/**"
+---
+- First statement of every handler/action: session and permission check. Unauthenticated → 401, unauthorised → 403.
+- Validate all input with a schema (zod). Never trust client-provided ids for ownership.
+- Rate-limit anything that sends email, calls a paid API, or can enumerate data.
+- Errors: return a short semantic code (`"NOT_FOUND"`, `"FORBIDDEN"`), never stack traces or SQL.
+- Never log personal data or secrets.
+- New or changed endpoints → `docs/dev/reference/endpoints.md`.

@@ -1,0 +1,12 @@
+---
+paths:
+  - "src/app/**"
+  - "src/components/**"
+  - "**/*.tsx"
+  - "**/*.css"
+---
+- Read `DESIGN.md` before building any screen.
+- Colours, spacing, radius and type sizes come from `globals.css` tokens only. No hex, no `text-[13px]`, no inline styles. The pre-commit design lint fails on these.
+- Tables, panels, forms, KPI rows, toolbars: use the canonical components listed in `DESIGN.md`. If one is missing, create it in the shared components folder and register it in `DESIGN.md`; never build a one-off in the screen.
+- Product UI strings in the product language (see `docs/product/glossary.md`); code in English.
+- Every user-visible change → `docs/product/features/<feature>.md` (doc-keeper does this on push; verify).
