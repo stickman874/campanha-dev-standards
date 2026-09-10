@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/lib.sh"
+L=$PWD/plugins/core/scripts/design-lint.sh
+T=$(mktemp -d); mkdir -p "$T/src/app"
+echo ':root{--brand:#123456}' > "$T/src/app/globals.css"
+echo '<div className="text-sm bg-card">ok</div>' > "$T/src/ok.tsx"
+assert_exit 0 bash "$L" "$T/src/app/globals.css" "$T/src/ok.tsx"
+echo '<div style={{color:"#ff0000"}}>' > "$T/src/bad1.tsx"
+assert_exit 1 bash "$L" "$T/src/bad1.tsx"
+echo '<p className="text-[13px] mt-[7px]">' > "$T/src/bad2.tsx"
+assert_exit 1 bash "$L" "$T/src/bad2.tsx"
+assert_contains "$(bash "$L" "$T/src/bad2.tsx" 2>&1)" 'text-\[13px\]' "reports the offending token"
+rm -rf "$T"; finish

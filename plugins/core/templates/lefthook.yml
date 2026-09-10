@@ -1,0 +1,23 @@
+# campanha-dev-standards gates. Do not bypass with --no-verify.
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: gitleaks protect --staged --redact --no-banner
+    lint:
+      glob: "*.{ts,tsx,js,jsx}"
+      run: npx eslint {staged_files}
+    design-lint:
+      glob: "*.{tsx,jsx,css}"
+      run: bash "${CAMPANHA_PLUGIN_ROOT:-$HOME/.claude/plugins/cache/campanha-dev-standards/core}/scripts/design-lint.sh" {staged_files}
+
+pre-push:
+  commands:
+    typecheck:
+      run: npx tsc --noEmit
+    test:
+      run: npm test --if-present -- --run
+    semgrep:
+      run: semgrep scan --config auto --error --quiet --metrics=off
+    trivy:
+      run: trivy fs --scanners vuln,secret --severity CRITICAL,HIGH --exit-code 1 --quiet .
