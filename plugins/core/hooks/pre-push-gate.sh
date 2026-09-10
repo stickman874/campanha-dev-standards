@@ -12,7 +12,7 @@ dir=$(git rev-parse --git-dir)/campanha
 [ -f "$dir/docs-$sha" ]     || deny "Push blocked: invoke the doc-keeper agent (mode push) to update docs/ and CHANGELOG for this change first (it writes $dir/docs-$sha)."
 
 if [ -f lefthook.yml ] && command -v lefthook >/dev/null; then
-  out=$(lefthook run pre-push 2>&1) || deny "Push blocked: lefthook pre-push failed. Fix the reported problems, never bypass. Output:
+  out=$(lefthook run pre-push --force --colors off 2>&1) || deny "Push blocked: lefthook pre-push failed. Fix the reported problems, never bypass. Output:
 $out"
 fi
 exit 0
