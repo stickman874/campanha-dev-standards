@@ -16,6 +16,6 @@ echo '<div className="text-[13px]">' > "$T/src/bad3.tsx"
 assert_exit 1 bash "$L" "$T/src/bad3.tsx"
 echo '<div className="bg-[var(--surface)] text-[13px]">' > "$T/src/mixed.tsx"
 assert_exit 1 bash "$L" "$T/src/mixed.tsx"
-echo '<div className="bg-[var(--surface)] w-[--sidebar-w]">' > "$T/src/tokens.tsx"
-assert_exit 0 bash "$L" "$T/src/tokens.tsx"
+echo '<div className="bg-[var(--surface)] w-[--sidebar-w]">' > "$T/src/tokref.tsx"
+assert_exit 0 bash "$L" "$T/src/tokref.tsx"
 rm -rf "$T"; finish
