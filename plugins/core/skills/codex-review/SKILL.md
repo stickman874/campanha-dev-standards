@@ -7,13 +7,17 @@ description: Use before any git push, and after writing a plan - runs Codex adve
 
 Rule: the model that wrote the code never judges it alone. Codex reviews; you fix.
 
+`/codex:adversarial-review` is user-only (`disable-model-invocation`), so call the codex runtime directly:
+
+    CODEX="$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs | sort -V | tail -1)"
+
 ## On a plan (before implementation)
-1. Run `/codex:adversarial-review` with the plan file path as argument.
+1. Run `node "$CODEX" adversarial-review --wait "review the plan in <plan path>"`.
 2. Apply every finding you agree with to the plan. For findings you reject, add one line under a `## Review notes` section in the plan saying why.
 
 ## On a diff (before push)
 1. Ensure everything is committed (`git status` clean). The gate keys the marker to HEAD.
-2. Run `/codex:adversarial-review`.
+2. Run `node "$CODEX" adversarial-review --wait`.
 3. Fix real findings, commit again, and re-run step 2 until Codex reports nothing material. Max 3 rounds; after that list remaining findings to the user and stop.
 4. Record the marker for the final HEAD:
 
