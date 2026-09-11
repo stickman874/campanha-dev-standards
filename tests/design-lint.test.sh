@@ -20,4 +20,6 @@ echo '<div className="bg-[var(--surface)] w-[--sidebar-w]">' > "$T/src/tokref.ts
 assert_exit 0 bash "$L" "$T/src/tokref.tsx"
 echo 'const colors = ["#ff0000", "var(--brand)"];' > "$T/src/arr.tsx"
 assert_exit 1 bash "$L" "$T/src/arr.tsx"
+echo '<div className="bg-[var(--surface,#ff0000)] w-[calc(var(--sidebar-w)+137px)]">' > "$T/src/fallback.tsx"
+assert_exit 1 bash "$L" "$T/src/fallback.tsx"
 rm -rf "$T"; finish
