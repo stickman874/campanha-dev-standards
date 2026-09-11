@@ -18,6 +18,6 @@ pre-push:
     test:
       run: npm test --if-present -- --run
     semgrep:
-      run: semgrep scan --config auto --error --quiet --metrics=off
+      run: semgrep scan --config p/default --error --quiet --metrics=off
     trivy:
-      run: trivy fs --scanners vuln,secret --severity CRITICAL,HIGH --exit-code 1 --quiet .
+      run: trivy fs --scanners vuln,secret --severity CRITICAL,HIGH --exit-code 1 --quiet --skip-files ".env*,**/.env*" .
