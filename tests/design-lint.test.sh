@@ -18,4 +18,6 @@ echo '<div className="bg-[var(--surface)] text-[13px]">' > "$T/src/mixed.tsx"
 assert_exit 1 bash "$L" "$T/src/mixed.tsx"
 echo '<div className="bg-[var(--surface)] w-[--sidebar-w]">' > "$T/src/tokref.tsx"
 assert_exit 0 bash "$L" "$T/src/tokref.tsx"
+echo 'const colors = ["#ff0000", "var(--brand)"];' > "$T/src/arr.tsx"
+assert_exit 1 bash "$L" "$T/src/arr.tsx"
 rm -rf "$T"; finish

@@ -23,7 +23,7 @@ for f in "${files[@]}"; do
   # hardcoded value — exclude those from the match.
   # Token references (var(--x) / --x inside brackets) are masked before matching
   # so other hardcoded values on the same line are still caught.
-  mask='s/\[[^]]*(var\(--|--[a-zA-Z])[^]]*\]/_tok_/g'
+  mask='s/-\[[^]]*(var\(--|--[a-zA-Z])[^]]*\]/-_tok_/g'
   if [ "$mode" = diff ] && git diff --cached --name-only -- "$f" 2>/dev/null | grep -q .; then
     src=$(git diff --cached -U0 -- "$f" | grep -E '^\+[^+]' | sed 's/^\+//')
   else
