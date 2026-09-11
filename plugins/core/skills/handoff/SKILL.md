@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Use at the end of a work block, before /clear, or when the user says "handoff" - writes a dated 4-line handoff note so the next person or session (human or AI) can continue without re-reading history.
+description: Use at the end of a work block, before /clear, or when the user says "handoff" - invoke as `core:handoff` (bare `handoff` may resolve to another plugin) - writes a dated 4-line handoff note so the next person or session (human or AI) can continue without re-reading history.
 ---
 
 # Handoff

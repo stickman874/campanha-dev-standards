@@ -20,4 +20,4 @@ argument-hint: [--tenant single|multi]
 5. Rewrite `CLAUDE.md` to the short template form (keep it if it is already just `@AGENTS.md` + a few lines). Strip any credentials found in instructions and report where they were (never the value).
 6. If there are no tests: add the smallest suite that runs (one smoke test per critical page/action) so pre-push can pass.
 7. Run `npx tsc --noEmit`, `npm test -- --run`, and `lefthook run pre-push`. Report failures; do not bypass.
-8. Commit on a branch `chore/adopt-standards`. Do not delete any source docs; the user deletes after reviewing the adopt report. End with the `handoff` skill.
+8. Commit on a branch `chore/adopt-standards`. Do not delete any source docs; the user deletes after reviewing the adopt report. End with the `core:handoff` skill.
