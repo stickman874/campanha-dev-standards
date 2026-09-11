@@ -14,4 +14,8 @@ echo '<div className="data-[state=checked]:bg-primary grid-cols-[repeat(3,1fr)]"
 assert_exit 0 bash "$L" "$T/src/variant.tsx"
 echo '<div className="text-[13px]">' > "$T/src/bad3.tsx"
 assert_exit 1 bash "$L" "$T/src/bad3.tsx"
+echo '<div className="bg-[var(--surface)] text-[13px]">' > "$T/src/mixed.tsx"
+assert_exit 1 bash "$L" "$T/src/mixed.tsx"
+echo '<div className="bg-[var(--surface)] w-[--sidebar-w]">' > "$T/src/tokens.tsx"
+assert_exit 0 bash "$L" "$T/src/tokens.tsx"
 rm -rf "$T"; finish

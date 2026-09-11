@@ -21,12 +21,15 @@ for f in "${files[@]}"; do
   # A bracket value that references a CSS custom property (var(--...), or a
   # bare --foo custom-property expression) is a token reference, not a
   # hardcoded value — exclude those from the match.
-  if [ "$mode" = diff ]; then
-    hits=$(git diff --cached -U0 -- "$f" | grep -E '^\+[^+]' | sed 's/^\+//' \
-      | grep -nE "$pattern" | grep -vE '^[0-9]+:\s*(//|/\*)' | grep -vE '\[[^]]*(var\(--|--[a-zA-Z])')
+  # Token references (var(--x) / --x inside brackets) are masked before matching
+  # so other hardcoded values on the same line are still caught.
+  mask='s/\[[^]]*(var\(--|--[a-zA-Z])[^]]*\]/[TOKEN]/g'
+  if [ "$mode" = diff ] && git diff --cached --name-only -- "$f" 2>/dev/null | grep -q .; then
+    src=$(git diff --cached -U0 -- "$f" | grep -E '^\+[^+]' | sed 's/^\+//')
   else
-    hits=$(grep -nE "$pattern" "$f" | grep -vE '^[0-9]+:\s*(//|/\*)' | grep -vE '\[[^]]*(var\(--|--[a-zA-Z])')
+    src=$(cat "$f")                                     # full audit, or file not staged
   fi
+  hits=$(printf '%s\n' "$src" | sed -E "$mask" | grep -nE "$pattern" | grep -vE '^[0-9]+:\s*(//|/\*)')
   [ -n "$hits" ] && { echo "design-lint: $f"; echo "$hits"; rc=1; }
 done
 [ $rc -ne 0 ] && echo "Use tokens from globals.css / DESIGN.md and canonical components. Add missing tokens globally, never inline." >&2
