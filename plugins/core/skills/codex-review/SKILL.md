@@ -9,7 +9,10 @@ Rule: the model that wrote the code never judges it alone. Codex reviews; you fi
 
 `/codex:adversarial-review` is user-only (`disable-model-invocation`), so call the codex runtime directly:
 
-    CODEX="$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs | sort -V | tail -1)"
+    CODEX="$(jq -r '.plugins["codex@openai-codex"][0].installPath' ~/.claude/plugins/installed_plugins.json)/scripts/codex-companion.mjs"
+    test -f "$CODEX" || { echo "codex plugin not installed: $CODEX"; exit 1; }
+
+This reads the installed (pinned) version, not the newest cached one, so a rollback is honoured.
 
 ## On a plan (before implementation)
 1. Run `node "$CODEX" adversarial-review --wait "review the plan in <plan path>"`.
