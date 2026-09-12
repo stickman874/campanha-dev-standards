@@ -9,10 +9,10 @@ Rule: the model that wrote the code never judges it alone. Codex reviews; you fi
 
 `/codex:adversarial-review` is user-only (`disable-model-invocation`), so call the codex runtime directly:
 
-    CODEX="$(jq -r '.plugins["codex@openai-codex"][0].installPath' ~/.claude/plugins/installed_plugins.json)/scripts/codex-companion.mjs"
+    CODEX="$(jq -r --arg p "$(git rev-parse --show-toplevel)" '.plugins["codex@openai-codex"] | (map(select(.scope=="project" and .projectPath==$p)) + map(select(.scope=="user")))[0].installPath' ~/.claude/plugins/installed_plugins.json)/scripts/codex-companion.mjs"
     test -f "$CODEX" || { echo "codex plugin not installed: $CODEX"; exit 1; }
 
-This reads the installed (pinned) version, not the newest cached one, so a rollback is honoured.
+This picks this project's install first, then the user-scope one - the pinned version, not the newest cached one - so a rollback is honoured.
 
 ## On a plan (before implementation)
 1. Run `node "$CODEX" adversarial-review --wait "review the plan in <plan path>"`.
