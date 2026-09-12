@@ -6,7 +6,9 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ### Changed
 
-- `core` plugin bumped to 0.1.3.
+- `AGENTS.md` template: new `## Communication` section (answer in the language asked, plain IT-not-programmer register, concise/token-saving, option selector with a `(recommended)` choice) so team comms defaults reach both Claude and Codex on adopt.
+- README: optional personal-preferences snippet to paste into `~/.claude/CLAUDE.md` for the same defaults globally per dev.
+- `core` plugin bumped to 0.1.4.
 - `lefthook.yml` template: `pre-push` semgrep step now runs `--config p/default` instead of `--config auto` (the `auto` ruleset requires metrics, which the gate runs with `--metrics=off`).
 - `lefthook.yml` template: `pre-push` trivy step now skips `.env*` files (`--skip-files ".env*,**/.env*"`) so local env files with placeholder-looking values don't fail the secret scan.
 

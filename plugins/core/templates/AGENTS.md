@@ -1,6 +1,12 @@
 # {{PROJECT}} — agent instructions
 
-Answer in the user's language. Write all docs, comments and commit messages in English. Product UI language: see docs/product/glossary.md.
+Write all docs, comments and commit messages in English. Product UI language: see docs/product/glossary.md.
+
+## Communication
+- Answer in whatever language the user asked in (PT-PT or US-EN).
+- Plain language. Technical when it matters, but the devs here are IT people, not programmers — explain a term the first time; don't assume CS fundamentals.
+- Be concise: shortest wording that still carries the substance. Cut preamble and recaps. Save tokens.
+- Multiple choice: use the Claude Code option selector, and mark one option `(recommended)`.
 
 ## Commands
 - dev: `npm run dev`

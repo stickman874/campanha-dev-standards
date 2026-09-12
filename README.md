@@ -15,6 +15,16 @@ Then inside Claude Code:
 
 Pin the Codex plugin version after installing: `/plugin install codex@openai-codex@<version>` (check `/plugin list`).
 
+## Personal preferences (optional, once per person)
+
+Team communication defaults ship in each repo's `AGENTS.md` (read by Claude and Codex). To also apply them globally across all your projects, paste this into your `~/.claude/CLAUDE.md`:
+
+    ## Personal preferences
+    - Language: answer in whatever language I asked in — PT-PT or US-EN.
+    - Register: plain language; the devs here are IT people, not programmers — explain a term the first time, don't assume CS fundamentals.
+    - Concise, always: shortest wording that carries the substance. Cut preamble and recaps. Save tokens.
+    - Multiple choice: use the Claude Code option selector, and mark one option (recommended).
+
 ## Bring a project up to standard (once per repo)
 
     /adopt
