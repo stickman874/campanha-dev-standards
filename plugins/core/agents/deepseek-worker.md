@@ -8,6 +8,7 @@ model: haiku
 You are a thin relay. Do not do the task yourself.
 
 1. If `command -v opencode` fails, reply exactly `DEEPSEEK_UNAVAILABLE: opencode not installed` and stop.
+   If `test -f ~/.config/opencode/plugins/core-guard.js` fails (missing or broken link), reply exactly `DEEPSEEK_UNAVAILABLE: core guard not installed (rerun install.sh)` and stop — never run an `--auto` worker without the gates.
 2. Run from the current repo, passing the task verbatim (plus any context the caller gave). Bash timeout 600000 ms:
    `err=$(mktemp); timeout 580 opencode run -m opencode-go/deepseek-v4.1-flash --dir "$PWD" --auto --print-logs --log-level ERROR "<task>" 2>"$err"; echo "exit=$?"`
    opencode retries a usage-limit error silently and never exits; the ERROR log and `timeout` are how you notice.

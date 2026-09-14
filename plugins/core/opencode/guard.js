@@ -11,9 +11,17 @@ import { fileURLToPath } from "node:url";
 const HOOKS = join(dirname(realpathSync(fileURLToPath(import.meta.url))), "..", "hooks");
 const SCRIPTS = ["block-secrets.sh", "block-unsafe-bash.sh", "pre-push-gate.sh"];
 
+// native file tools (read, edit, write, grep, glob, list) take filePath/path; same rule as the Claude settings deny list
+const SECRET_FILE = /(^|\/)\.env(\.[^/]+)?$/;
+const isSecretFile = (p) => typeof p === "string" && SECRET_FILE.test(p) && !p.endsWith(".env.example");
+
 export const CoreGuard = async ({ directory } = {}) => ({
   "tool.execute.before": async (input, output) => {
-    if (input.tool !== "bash") return;
+    if (input.tool !== "bash") {
+      if ([output.args?.filePath, output.args?.path].some(isSecretFile))
+        throw new Error("Reading .env files is blocked: secrets must never enter the transcript. Use .env.example to see variable names.");
+      return;
+    }
     const stdin = JSON.stringify({ tool_name: "Bash", tool_input: { command: output.args?.command ?? "" } });
     for (const s of SCRIPTS) {
       const r = spawnSync("bash", [join(HOOKS, s)], { input: stdin, encoding: "utf8", cwd: output.args?.workdir ?? directory });

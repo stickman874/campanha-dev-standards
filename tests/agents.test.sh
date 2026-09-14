@@ -9,5 +9,6 @@ w=plugins/core/agents/deepseek-worker.md
 assert_contains "$(head -6 $w)" 'name: deepseek-worker' "worker agent name"
 assert_contains "$(cat $w)" 'DEEPSEEK_UNAVAILABLE' "worker signals fallback"
 assert_contains "$(cat $w)" 'timeout 580' "worker cannot hang on silent retries"
+assert_contains "$(cat $w)" 'core-guard.js' "worker refuses to run --auto without the guard"
 assert_contains "$(cat plugins/core/templates/CLAUDE.md)" 'core:deepseek-worker' "template dispatches to worker"
 finish
