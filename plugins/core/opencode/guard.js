@@ -15,10 +15,32 @@ const SCRIPTS = ["block-secrets.sh", "block-unsafe-bash.sh", "pre-push-gate.sh"]
 const SECRET_FILE = /(^|\/)\.env(\.[^/]+)?$/;
 const isSecretFile = (p) => typeof p === "string" && SECRET_FILE.test(p) && !p.endsWith(".env.example");
 
+// A broad grep (no include/path) still searches secret files; drop their matches from the result.
+// Handles "path:" headers with indented "Line N:" rows and inline "path:N:text" rows.
+const redactSecretMatches = (text) => {
+  let inSecret = false, redacted = 0;
+  const kept = text.split("\n").filter((line) => {
+    const header = /^(\S.*):$/.exec(line);
+    if (header) { inSecret = isSecretFile(header[1].trim()); if (inSecret) redacted++; return !inSecret; }
+    const inline = /^([^\s:]+):\d+:/.exec(line);
+    if (inline) { if (isSecretFile(inline[1])) { redacted++; return false; } return true; }
+    if (/^\s/.test(line)) return !inSecret;
+    inSecret = false;
+    return true;
+  });
+  return redacted ? kept.join("\n") + `\n[core guard: matches in ${redacted} secret file(s) redacted]` : text;
+};
+
 export const CoreGuard = async ({ directory } = {}) => ({
+  "tool.execute.after": async (input, output) => {
+    if (input.tool === "grep" && typeof output.output === "string") output.output = redactSecretMatches(output.output);
+  },
   "tool.execute.before": async (input, output) => {
     if (input.tool !== "bash") {
-      if ([output.args?.filePath, output.args?.path].some(isSecretFile))
+      // grep/glob `include` globs (".env*", "*.env.local") would return secret-file contents from a directory search
+      const include = output.args?.include;
+      const secretInclude = typeof include === "string" && /\.env/.test(include.replace(/\.env\.example/g, ""));
+      if (secretInclude || [output.args?.filePath, output.args?.path].some(isSecretFile))
         throw new Error("Reading .env files is blocked: secrets must never enter the transcript. Use .env.example to see variable names.");
       return;
     }

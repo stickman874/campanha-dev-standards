@@ -22,6 +22,29 @@ assert_contains "$(run "$G" read /app/.env)" '^deny' "native read of .env denied
 assert_contains "$(run "$G" read apps/web/.env.local)" '^deny' "native read of .env.local denied"
 assert_contains "$(run "$G" grep /app/.env.production)" '^deny' "grep on .env.production denied"
 assert_eq allow "$(run "$G" read /app/.env.example)" "native read of .env.example allowed"
+inc() { node --input-type=module -e '
+  const [g, include] = process.argv.slice(1);
+  const h = (await (await import(g)).CoreGuard({}))["tool.execute.before"];
+  try { await h({ tool: "grep" }, { args: { pattern: ".", path: "/app", include } }); console.log("allow"); } catch (e) { console.log("deny: " + e.message); }
+' "$@"; }
+assert_contains "$(inc "$G" '.env*')" '^deny' "grep include .env* denied"
+assert_contains "$(inc "$G" '*.env.local')" '^deny' "grep include *.env.local denied"
+assert_eq allow "$(inc "$G" '.env.example')" "grep include .env.example allowed"
+assert_eq allow "$(inc "$G" '*.{ts,tsx}')" "grep include source globs allowed"
+after() { node --input-type=module -e '
+  const [g, text] = process.argv.slice(1);
+  const out = { output: text };
+  await (await import(g)).CoreGuard({}).then((h) => h["tool.execute.after"]({ tool: "grep" }, out));
+  console.log(out.output);
+' "$@"; }
+canary="SECRET_VALUE_X"
+blocks=$(after "$G" "$(printf 'Found 2 matches\n/app/.env:\n  Line 1: K=%s\n\n/app/src/a.ts:\n  Line 3: const k = 1\n' "$canary")")
+assert_eq 0 "$(printf '%s' "$blocks" | grep -c "$canary")" "broad grep: secret-file block redacted"
+assert_contains "$blocks" 'Line 3: const k' "broad grep: other files kept"
+assert_contains "$blocks" 'redacted' "broad grep: redaction noted"
+inline=$(after "$G" "$(printf 'deploy/.env.secrets:2:K=%s\nsrc/a.ts:3:const k\n' "$canary")")
+assert_eq 0 "$(printf '%s' "$inline" | grep -c "$canary")" "inline grep rows from secret files redacted"
+assert_contains "$(after "$G" "$(printf '/app/.env.example:\n  Line 1: K=\n')")" 'Line 1: K=' ".env.example matches kept"
 assert_eq allow "$(run "$G" read src/env.ts)" "native read of ordinary file allowed"
 
 T=$(mktemp -d); git -C "$T" init -q; git -C "$T" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x
