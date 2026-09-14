@@ -47,6 +47,20 @@ assert_eq 0 "$(printf '%s' "$inline" | grep -c "$canary")" "inline grep rows fro
 assert_contains "$(after "$G" "$(printf '/app/.env.example:\n  Line 1: K=\n')")" 'Line 1: K=' ".env.example matches kept"
 assert_eq allow "$(run "$G" read src/env.ts)" "native read of ordinary file allowed"
 
+D=$(mktemp -d); mkdir -p "$D/config"; : > "$D/.env.production"; ln -s ../.env.production "$D/config/current"; printf 'x\n' > "$D/ok.ts"
+assert_contains "$(run "$G" read config/current "$D")" '^deny' "symlink to a secret file denied"
+assert_eq allow "$(run "$G" read ok.ts "$D")" "ordinary file next to it allowed"
+rm -rf "$D"
+ap() { node --input-type=module -e '
+  const [g, patchText] = process.argv.slice(1);
+  const h = (await (await import(g)).CoreGuard({}))["tool.execute.before"];
+  try { await h({ tool: "apply_patch" }, { args: { patchText } }); console.log("allow"); } catch (e) { console.log("deny: " + e.message); }
+' "$@"; }
+assert_contains "$(ap "$G" "$(printf '*** Begin Patch\n*** Delete File: /app/.env\n*** End Patch')")" '^deny' "apply_patch delete of .env denied"
+assert_contains "$(ap "$G" "$(printf '*** Begin Patch\n*** Update File: src/a.ts\n*** Move to: deploy/.env.secrets\n@@\n-a\n+b\n*** End Patch')")" '^deny' "apply_patch move onto .env denied"
+assert_contains "$(ap "$G" "$(printf '*** Begin Patch\n*** Add File: .env.local\n+K=v\n*** End Patch')")" '^deny' "apply_patch add .env.local denied"
+assert_eq allow "$(ap "$G" "$(printf '*** Begin Patch\n*** Update File: src/a.ts\n@@\n-a\n+b\n*** End Patch')")" "apply_patch on source allowed"
+
 T=$(mktemp -d); git -C "$T" init -q; git -C "$T" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x
 assert_contains "$(run "$G" bash 'git push origin main' "$T")" 'codex-review' "push without review markers denied"
 
