@@ -25,4 +25,15 @@ T2=$(mktemp -d)/a\&b; mkdir -p "$T2"; cd "$T2"; git init -q
 bash "$A" "$T2" >/dev/null
 assert_contains "$(cat AGENTS.md)" '# a&b' "project name with & escaped correctly"
 cd - >/dev/null; rm -rf "$(dirname "$T2")"
+T3=$(mktemp -d)/stack; mkdir -p "$T3"; cd "$T3"; git init -q
+echo '{}' > package.json; echo 'module x' > go.mod
+out3=$(bash "$A" "$T3"); bash "$A" "$T3" >/dev/null
+s=.claude/settings.json
+assert_eq true "$(jq -r '.enabledPlugins["typescript-lsp@claude-plugins-official"]' $s)" "package.json enables typescript-lsp"
+assert_eq true "$(jq -r '.enabledPlugins["gopls-lsp@claude-plugins-official"]' $s)" "go.mod enables gopls-lsp"
+assert_eq null "$(jq -r '.enabledPlugins["pyright-lsp@claude-plugins-official"]' $s)" "no python marker, no pyright-lsp"
+assert_eq true "$(jq -r '.enabledPlugins["core@campanha-dev-standards"]' $s)" "template plugins kept"
+assert_contains "$out3" 'lsp: typescript-lsp' "reports enabled lsp plugins"
+out4=$(PATH=/usr/bin:/bin bash "$A" "$T3"); assert_contains "$out4" 'install gopls' "flags missing language server"
+cd - >/dev/null; rm -rf "$(dirname "$T3")"
 finish

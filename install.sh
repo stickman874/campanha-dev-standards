@@ -9,7 +9,7 @@ grep -q '.local/bin' ~/.profile ~/.bashrc ~/.zshrc 2>/dev/null || echo "note: ad
 check=${1:-}
 have() { command -v "$1" >/dev/null 2>&1; }
 status() { if have "$1"; then echo "ok       $1"; else echo "MISSING  $1"; fi; }
-for t in lefthook gitleaks semgrep trivy codex node jq; do status "$t"; done
+for t in lefthook gitleaks semgrep trivy codex node jq typescript-language-server; do status "$t"; done
 if have npx && npx --no-install playwright --version >/dev/null 2>&1; then echo "ok       playwright"; else echo "MISSING  playwright"; fi
 [ "$check" = "--check" ] && exit 0
 
@@ -31,6 +31,16 @@ have npx && npx --no-install playwright --version >/dev/null 2>&1 || { echo "FAI
 if [ $fails -gt 0 ]; then
 	echo "some tools failed to install (see FAILED lines)"
 	exit 1
+fi
+
+# language server for the official typescript-lsp Claude Code plugin; /adopt reports the one other stacks need
+have typescript-language-server || npm install -g typescript-language-server typescript || echo "attempting typescript-language-server install failed"
+
+# opencode: run the core Bash hooks on opencode's bash tool too (plugins/core/opencode/guard.js)
+guard="$HOME/.claude/plugins/marketplaces/campanha-dev-standards/plugins/core/opencode/guard.js"
+if have opencode; then
+  if [ -f "$guard" ]; then mkdir -p ~/.config/opencode/plugins && ln -sfn "$guard" ~/.config/opencode/plugins/core-guard.js && echo "ok       opencode guard"
+  else echo "note: opencode guard not linked yet — add the Claude marketplace below, then rerun install.sh"; fi
 fi
 
 echo; echo "Now in Claude Code:"

@@ -8,6 +8,17 @@ Write all docs, comments and commit messages in English. Product UI language: se
 - Be concise: shortest wording that still carries the substance. Cut preamble and recaps. Save tokens.
 - Multiple choice: use the Claude Code option selector, and mark one option `(recommended)`.
 
+## Models
+- Orchestrator (plans, decides, reviews): the tool's strongest model. Never Kimi.
+- Worker (well-scoped edits, searches, tests): DeepSeek V4.1 Flash via opencode if you have opencode-go; otherwise Sonnet.
+- On a quota or rate-limit error, fall back to the next option and say so in one line.
+- Without Claude: `opencode run -m opencode-go/deepseek-v4.1-flash --dir <repo> --auto "<task>"`.
+
+## Code navigation
+- Prefer the language server over grep or reading whole files when the tool has one (the LSP tool in Claude Code and opencode): `workspaceSymbol` to find a definition, `findReferences` for usages, `goToDefinition`/`goToImplementation` to jump to source, `hover` for types without reading the file.
+- Grep only for plain text (comments, strings, config) or when no language server is available.
+- After editing code, check the diagnostics (type errors) and fix them before moving on.
+
 ## Commands
 - dev: `npm run dev`
 - test: `npm test -- --run`

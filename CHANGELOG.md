@@ -4,6 +4,13 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+### Added
+
+- `/adopt` enables the official Claude Code LSP plugin for each detected stack (`package.json`/`tsconfig.json` → `typescript-lsp`, `pyproject.toml` → `pyright-lsp`, `go.mod` → `gopls-lsp`, Rust, PHP, C#, Java, Swift, C/C++) in the project's `.claude/settings.json`, and flags a missing language-server binary as `needs-review`. `install.sh` installs `typescript-language-server`.
+- `AGENTS.md` template: `## Code navigation` — prefer the LSP tool (`workspaceSymbol`, `findReferences`, `goToDefinition`/`goToImplementation`, `hover`) over grep/whole-file reads; grep only for plain text; fix diagnostics before moving on. Same operation names in Claude Code and opencode.
+- `core:deepseek-worker` agent: relays a scoped task to DeepSeek V4.1 Flash via `opencode run`; returns `DEEPSEEK_UNAVAILABLE` on missing opencode, usage/rate limit, auth error or timeout (opencode retries limits silently and never exits) so Claude falls back to Sonnet. Templates `AGENTS.md` (new `## Models`) and `CLAUDE.md`, and the design spec, now name DeepSeek-if-available-else-Sonnet as the worker standard.
+- `plugins/core/opencode/guard.js`: opencode plugin that runs `block-secrets.sh`, `block-unsafe-bash.sh` and `pre-push-gate.sh` before opencode's `bash` tool, so opencode sessions and `opencode run --auto` workers (e.g. DeepSeek) hit the same gates as Claude. Rules stay only in `hooks/*.sh`; a hook that cannot run blocks the command. `install.sh` symlinks it into `~/.config/opencode/plugins/` when opencode is installed.
+
 ### Changed
 
 - `AGENTS.md` template: new `## Communication` section (answer in the language asked, plain IT-not-programmer register, concise/token-saving, option selector with a `(recommended)` choice) so team comms defaults reach both Claude and Codex on adopt.
