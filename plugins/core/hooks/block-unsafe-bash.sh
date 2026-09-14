@@ -10,7 +10,8 @@ printf '%s' "$cmd" | grep -Eq -- '--no-verify|--no-gpg-sign' \
 # any .env file except .env.example — strip .env.example occurrences first so
 # they can't shield a real .env reference elsewhere in the same command.
 rest=${cmd//.env.example/}
-if printf '%s' "$rest" | grep -Eq '(^|[^A-Za-z0-9_./-])\.env(\.[A-Za-z0-9_-]+)?($|[^A-Za-z0-9_.-])'; then
+# '/' may precede .env so qualified paths (deploy/.env.secrets, ./.env, /app/.env) are caught too.
+if printf '%s' "$rest" | grep -Eq '(^|[^A-Za-z0-9_.-])\.env(\.[A-Za-z0-9_-]+)?($|[^A-Za-z0-9_.-])'; then
   deny "Reading .env files is blocked: secrets must never enter the transcript. Use .env.example to see variable names."
 fi
 

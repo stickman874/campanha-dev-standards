@@ -21,6 +21,7 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ### Fixed
 
+- `block-unsafe-bash.sh`: `.env` files behind a directory (`cat deploy/.env.secrets`, `./.env`, `/srv/app/.env`) were not blocked because `/` was excluded before `.env`; now denied, `.env.example` still allowed.
 - `handoff` skill: templates and adopt now reference it as `core:handoff`. The bare name `handoff` collided with `mattpocock-skills:handoff` (`disable-model-invocation: true`), so the model got "cannot be used with Skill tool" when it tried to run ours.
 - `codex-review` skill: calls `codex-companion.mjs adversarial-review` directly instead of `/codex:adversarial-review`, which is a user-only command (`disable-model-invocation: true`) and failed with "only the user can run it" when the skill ran. The runtime path is now resolved from `~/.claude/plugins/installed_plugins.json`, preferring this project's own install over the user-scope one, so a pinned/rolled-back Codex version is honoured instead of always picking the newest cached install.
 - `design-lint.sh`: when lefthook passes an explicit staged file list, the script now checks only the newly added/changed lines of the diff instead of the whole file, so touching a file for an unrelated reason no longer resurfaces pre-existing hardcoded-value violations elsewhere in it. A full repo scan (no file args) still checks whole file contents.
