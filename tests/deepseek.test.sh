@@ -11,10 +11,11 @@ echo b >> "$W/repo/a.ts"; git -C "$W/repo" -c user.name=t -c user.email=t@t comm
 # fake opencode: records its args (one per line) and any attached file, behaves per FAKE_MODE
 cat > "$W/bin/opencode" <<'EOF'
 #!/usr/bin/env bash
-printf '%s\n' "$@" > "$FAKE_ARGS"
+printf '%s\n' "$@" > "$FAKE_ARGS"; echo call >> "$FAKE_CALLS"
 prev=; for a in "$@"; do [ "$prev" = -f ] && cp "$a" "$FAKE_ATTACH"; prev=$a; done
 case $FAKE_MODE in
   ok)    echo "Summary: done"; echo x > touched.txt;;
+  fix)   printf '%s' "$*" | grep -q 'fails:' && echo y > fixed.txt; echo "Summary: round";;
   limit) echo 'level=ERROR error.error="AI_APICallError: 5-hour usage limit reached. Resets in 39min."' >&2; sleep 30;;
   hang)  sleep 30;;
   fail)  echo "boom" >&2; exit 1;;
@@ -22,8 +23,28 @@ case $FAKE_MODE in
 esac
 EOF
 chmod +x "$W/bin/opencode"
-export PATH="$W/bin:$PATH" OPENCODE_CONFIG_DIR="$W/oc" FAKE_ARGS="$W/args" FAKE_ATTACH="$W/attached"
-ds() { git -C "$W/repo" checkout -q -- .; git -C "$W/repo" clean -fdq; FAKE_MODE=$1 bash "$D" "${@:2}"; }  # each call starts from a clean tree
+export PATH="$W/bin:$PATH" OPENCODE_CONFIG_DIR="$W/oc" FAKE_ARGS="$W/args" FAKE_ATTACH="$W/attached" FAKE_CALLS="$W/calls"
+ds() { git -C "$W/repo" checkout -q -- .; git -C "$W/repo" clean -fdq; rm -f "$W/calls"; FAKE_MODE=$1 bash "$D" "${@:2}"; }  # each call starts from a clean tree
+calls() { wc -l < "$W/calls" | tr -d ' '; }
+
+out=$(printf 'Outcome: x\nTest: test -e touched.txt\n' | ds ok run "$W/repo")
+assert_contains "$out" 'tests (`test -e touched.txt`): pass' "tests: script runs the Test command"
+assert_eq 1 "$(calls)" "tests: passing first time needs no correction round"
+out=$(printf 'Outcome: x\nTest: test -e fixed.txt\n' | ds fix run "$W/repo")
+assert_contains "$out" '): pass' "tests: failure sent back, fixed in the correction round"
+assert_eq 2 "$(calls)" "tests: exactly one correction round"
+assert_contains "$(cat "$W/args")" 'test -e fixed.txt` fails:' "tests: correction message names the failing command"
+out=$(printf 'Outcome: x\nTest: echo nope; false\n' | ds ok run "$W/repo")
+assert_contains "$out" 'FAIL after one correction round' "tests: still failing is reported"
+assert_contains "$out" 'nope' "tests: failing output shown"
+assert_eq 2 "$(calls)" "tests: no retry loop"
+printf 'API_KEY="sk-live-abcdef123456"\n' > "$W/repo/.env"; echo .env > "$W/repo/.git/info/exclude"
+out=$(printf 'Outcome: x\nTest: cat .env; false\n' | ds ok run "$W/repo")
+case "$out$(cat "$W/args")" in *abcdef123456*) echo "  FAIL secret from .env reached the worker or output"; FAILS=$((FAILS+1));; *) echo "  ok  tests: .env values redacted";; esac
+assert_contains "$(cat "$W/args")" 'REDACTED' "tests: redaction marker sent instead"
+rm -f "$W/repo/.env" "$W/repo/.git/info/exclude"
+out=$(echo "Outcome: x" | ds ok run "$W/repo")
+case $out in *'--- tests'*) echo "  FAIL no Test line still ran tests"; FAILS=$((FAILS+1));; *) echo "  ok  no Test line: no tests run";; esac
 
 out=$(echo "Outcome: x" | ds ok run "$W/repo"); code=$?
 assert_eq 0 "$code" "run: success exits 0"

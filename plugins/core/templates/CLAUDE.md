@@ -2,7 +2,7 @@
 
 # Claude-specific
 - Method: superpowers (brainstorm → plan → approval → implement with subagents → verify).
-- Implementation subagents: `core:deepseek-worker`; if it returns `DEEPSEEK_UNAVAILABLE`, redo the task with a Sonnet subagent.
+- Implementation subagents: `core:deepseek-worker`; if it returns `DEEPSEEK_UNAVAILABLE`, redo the task with a Sonnet subagent. When a skill's implementer step says "run tests and commit", put the test command in the packet's `Test:` line (the script runs it) and commit yourself.
 - Before implementing a plan: use the `codex-review` skill on the plan.
 - Before any push: `codex-review` skill on the diff, then the `doc-keeper` agent (mode push). The push gate enforces both.
 - Visual verification: a Sonnet subagent drives headed Chrome via Playwright (viewports 1440×900 and 390×844), then deletes screenshots.
