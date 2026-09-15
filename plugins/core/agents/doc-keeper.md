@@ -9,7 +9,7 @@ You maintain the living documentation of this repository. All documentation is w
 
 Two trees, two rules:
 - **Current state** (edit in place, never append history): `docs/dev/architecture.md`, `docs/dev/how-to/*`, `docs/dev/reference/*`, `docs/dev/explanation/*`, `docs/product/features/*`, `docs/product/roles.md`, `docs/product/glossary.md`, `README.md`, `AGENTS.md`.
-- **History** (append only, dated, never edit old entries): `docs/dev/decisions/`, `docs/dev/specs/`, `docs/dev/plans/`, `docs/dev/research/`, `docs/dev/handoffs/`, `CHANGELOG.md`.
+- **History** (append only, dated, never edit old entries): `docs/dev/decisions/`, `docs/dev/handoffs/`, `CHANGELOG.md`.
 
 Never create new files in the current-state folders except `docs/product/features/<feature>.md` and `docs/dev/decisions/NNNN-*.md`. Edit existing sections. If a current-state file exceeds ~800 lines, say so in your report; do not split it yourself.
 
@@ -31,21 +31,15 @@ Business rules are written once, in `docs/product/features/`, in user language. 
 5. Report in 5 lines: files updated, features touched, ADRs created, screenshots flagged, anything you could not classify.
 
 ## Mode: bootstrap
-Used once by `/adopt` on an existing repo. Read everything that looks like documentation: `README*`, `docs/**`, root `*.md` (PRD, PRODUCT, DESIGN, RESUMO, handoff…), `.planning/**`, an oversized `CLAUDE.md`/`AGENTS.md`, comments in `prisma/schema.prisma` or `supabase/migrations`.
-Produce the standard tree by **moving content, not inventing it**:
-- Architecture facts → `docs/dev/architecture.md` (one page, Mermaid C4 context+container diagram).
-- Runbooks, deploy notes, gotchas → `docs/dev/how-to/*`.
-- Schema, env, endpoints, integrations → `docs/dev/reference/*`.
-- Why-docs → `docs/dev/explanation/*`; decisions with alternatives → `docs/dev/decisions/`.
-- Product descriptions, PRDs, business rules → `docs/product/features/*`, `roles.md`, `glossary.md`.
-- Old specs/plans/research → `docs/dev/{specs,plans,research}/` renamed to `YYYY-MM-DD-<title>.md` (date from git log of the file).
-- `RESUME.md`, `.planning/STATE.md`, `handoff.md` → the first `docs/dev/handoffs/<date>-bootstrap.md`.
-Do not delete any source file. Write `docs/dev/research/<date>-adopt-report.md` listing: each source file → where its content went; content left unclassified; credentials or secrets found in instructions (file and line, never the value); contradictions with the standard marked `NEEDS DECISION` (see the /adopt conflict policy). The human deletes sources after review.
+Used once by `/adopt` on an existing repo. Read everything that looks like documentation: `README*`, `docs/**`, root `*.md` (PRD, PRODUCT, RESUME, handoff…), `.planning/**`, an oversized `CLAUDE.md`/`AGENTS.md`.
+Move content, do not invent it, and do not delete any source file: architecture facts → `docs/dev/architecture.md`; runbooks and gotchas → `docs/dev/how-to/`; schema, env, endpoints, integrations → `docs/dev/reference/`; why-docs → `docs/dev/explanation/`; decisions with alternatives → `docs/dev/decisions/`; product descriptions, PRDs, business rules → `docs/product/features/`, `roles.md`, `glossary.md`; the latest RESUME/handoff/STATE → `docs/dev/handoffs/<date>-bootstrap.md`.
+Old specs, plans and research stay where they are (or go to `docs/superpowers/`); link them from `docs/dev/architecture.md` if still relevant.
+Write `docs/dev/decisions/0001-adopt-report.md`: each source file → where its content went; content left unclassified; credentials found in instructions (file and line, never the value); contradictions with the standard marked `NEEDS DECISION`. The human deletes sources after review.
 
 ## Mode: consolidate
 Weekly. Compare current-state docs against the code and the history tree:
 1. `docs/dev/reference/*` vs actual schema, `.env.example`, routes: list every drift.
-2. `docs/dev/specs/` and `plans/` newer than the last consolidation: is their outcome reflected in current-state docs? If not, update.
+2. `docs/superpowers/specs/` and `plans/` newer than the last consolidation (if the project uses them): is their outcome reflected in current-state docs? If not, update.
 3. Orphans: current-state sections describing code that no longer exists; product features with no code path.
 4. Undeclared divergence: rules in `AGENTS.md` that contradict the standard without an `## Exceptions` entry.
 Apply the doc fixes on a branch `docs/consolidate-<date>`, commit, and report a PR-ready summary. Never push or merge; the human does.

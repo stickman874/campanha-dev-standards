@@ -1,23 +1,13 @@
 ---
 description: Bring this repository up to the campanha-dev-standards (templates, gates, docs tree), then migrate existing documentation with doc-keeper.
-argument-hint: [--tenant single|multi]
 ---
 
 # /adopt
 
-1. Ask the user one question if not given: is this project single-tenant or multi-tenant (serves several client organisations)?
-2. Run the deterministic part:
-
-    bash "${CLAUDE_PLUGIN_ROOT}/scripts/adopt.sh" "$PWD" --tenant <single|multi>
-
-3. Show the report. For every `needs-review` line, and whenever the repo already had documentation, invoke the `doc-keeper` agent in **mode bootstrap**. It moves existing content into the standard tree and writes `docs/dev/research/<date>-adopt-report.md`. It never deletes sources.
-4. Apply the conflict policy to anything in existing instructions that contradicts the standard:
-   - Security or gate rule (secrets, --no-verify, db push, tests): standard wins; remove the old rule; list it.
-   - Convention (naming, hosting, typography, folder roles): standard wins unless the user confirms an exception → add `key: value — reason` under `## Exceptions` in AGENTS.md.
-   - More specific than the standard (domain rules, stack quirks): keep in AGENTS.md or `.claude/rules/`.
-   - Sibling projects disagree: draft an ADR in `docs/dev/decisions/` with both options; do not migrate that point; tell the user.
-   - Unclassifiable: leave untouched, mark `NEEDS DECISION` in the adopt report.
-5. Rewrite `CLAUDE.md` to the short template form (keep it if it is already just `@AGENTS.md` + a few lines). Strip any credentials found in instructions and report where they were (never the value).
-6. If there are no tests: add the smallest suite that runs (one smoke test per critical page/action) so pre-push can pass.
-7. Run `npx tsc --noEmit`, `npm test -- --run`, and `lefthook run pre-push`. Report failures; do not bypass.
-8. Commit on a branch `chore/adopt-standards`. Do not delete any source docs; the user deletes after reviewing the adopt report. End with the `core:handoff` skill.
+1. `copier copy --trust gh:stickman874/campanha-dev-standards .` (answer project name and tenant; explain tenant in one sentence if asked). Existing repo already adopted: `copier update --trust` instead.
+2. Read the output. If `mise` is missing: `curl https://mise.run | sh`, then rerun step 1's task: `mise install && lefthook install`.
+3. If the repo already had documentation (README beyond a stub, `docs/*` outside `dev|product`, root PRD/RESUME/handoff files, `.planning/`, an oversized CLAUDE.md): invoke the `doc-keeper` agent in **mode bootstrap**. It moves content into the standard tree, never deletes sources, and writes `docs/dev/decisions/0001-adopt-report.md` listing what went where and what needs a decision.
+4. Conflicts between old instructions and the standard: security/gate rules → standard wins, list it; conventions → standard wins unless the user confirms an exception under `## Exceptions` in AGENTS.md; more specific rules → keep in AGENTS.md or `.claude/rules/`.
+5. Design lint: follow `docs/dev/how-to/design-lint.md` (eslint plugin) if the project uses Tailwind.
+6. No tests? Add the smallest vitest smoke test so pre-push can pass. Then `npx tsc --noEmit`, `npm test -- --run`, `lefthook run pre-push` (it will call Codex; expect a review). Report failures; do not bypass.
+7. Commit on branch `chore/adopt-standards`. End with the `core:handoff` skill.

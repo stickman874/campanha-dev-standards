@@ -13,5 +13,5 @@
 | CRA | only if the product is in scope (not plain SaaS) | 24 h early warning, 72 h notification, 14 days final report |
 
 ## Afterwards
-- Post-mortem in `docs/dev/decisions/` if a decision follows; otherwise `docs/dev/research/<date>-postmortem.md`.
+- Post-mortem in `docs/dev/decisions/` if a decision follows; otherwise `docs/dev/decisions/NNNN-postmortem-<date>.md`.
 - Update `docs/dev/explanation/security.md` and `CHANGELOG.md` (Security).

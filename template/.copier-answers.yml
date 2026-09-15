@@ -1,0 +1,2 @@
+# Copier answers — edited by `copier update`, not by hand.
+{{ _copier_answers|to_nice_yaml -}}

@@ -1,0 +1,27 @@
+_min_copier_version: "9.0.0"
+_subdirectory: template
+_templates_suffix: ""
+_answers_file: .copier-answers.yml
+_skip_if_exists:
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - CHANGELOG.md
+  - DESIGN.md
+  - SECURITY.md
+  - docs/**
+  - public/.well-known/security.txt
+  - .claude/settings.json
+  - .claude/rules/**
+_tasks:
+  - command: "command -v mise >/dev/null && mise install; command -v lefthook >/dev/null && lefthook install; echo 'adopted: run the doc-keeper agent to migrate existing docs'"
+    when: "{{ _copier_operation == 'copy' }}"
+project_name:
+  type: str
+  help: Project name (used in titles)
+  default: "{{ _copier_conf.dst_path | basename }}"
+tenant:
+  type: str
+  help: "single = one organisation uses it; multi = several client organisations share it (row-level isolation required)"
+  choices: [single, multi]
+  default: single
