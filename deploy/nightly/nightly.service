@@ -2,6 +2,7 @@
 Description=campanha night shift: review, scan and refresh docs of adopted repos
 [Service]
 Type=oneshot
+TimeoutStartSec=0
 User=nightly
-Environment=PATH=/home/nightly/.local/bin:/home/nightly/.opencode/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=/home/nightly/.local/share/mise/shims:/home/nightly/.local/bin:/home/nightly/.opencode/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/bin/bash /home/nightly/campanha-dev-standards/deploy/nightly/run-all.sh

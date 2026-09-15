@@ -8,6 +8,8 @@ permission:
   webfetch: deny
   websearch: deny
   external_directory: deny
+  # opencode's own docs give this exact shape: a "*" deny first, then narrower
+  # allows — the last matching rule wins, so the allows below carve out of it.
   edit:
     "*": deny
     "docs/**": allow

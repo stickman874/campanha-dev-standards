@@ -37,6 +37,19 @@ git checkout -q main; echo c >> src/a.ts; git commit -qam c; git push -q origin 
 rm "$W/bin/semgrep"
 # strip any real semgrep from PATH too (a dev/server box may have one via mise; removing only the fake would then be masked)
 clean_path=$(IFS=:; for d in $PATH; do [ -x "$d/semgrep" ] && continue; printf '%s:' "$d"; done)
+echo "manual SKIP_REVIEW entry" > docs/dev/reviews/skipped.log
 out=$(PATH="${clean_path%:}" bash "$S" "$W/repo" 2>&1); code=$?; assert_eq 1 "$code" "missing tool: exit 1"; assert_contains "$(git show "origin/nightly/$day:docs/dev/reviews/$day.md")" 'semgrep: missing' "missing tool named in report"
+assert_contains "$(cat docs/dev/reviews/skipped.log)" 'manual SKIP_REVIEW entry' "skipped.log kept after a failed (rc=1) run"
+printf '#!/usr/bin/env bash\necho "semgrep: 1 finding"\nexit 1\n' > "$W/bin/semgrep"; chmod +x "$W/bin/semgrep"
+git checkout -q main; echo d >> src/a.ts; git commit -qam d; git push -q origin main
+out=$(bash "$S" "$W/repo" 2>&1); code=$?; assert_eq 0 "$code" "run with semgrep back exits 0"
+[ -s docs/dev/reviews/skipped.log ] && { echo "  FAIL skipped.log not truncated after a successful run"; FAILS=$((FAILS+1)); } || echo "  ok  skipped.log truncated after a successful run"
+
+git checkout -q main; echo e >> src/a.ts; git rm -q scripts/review.sh; git commit -qam 'drop review.sh'; git push -q origin main
+out=$(bash "$S" "$W/repo" 2>&1); code=$?
+assert_eq 1 "$code" "review.sh missing: exit 1"
+assert_contains "$(git show "origin/nightly/$day:docs/dev/reviews/$day.md")" 'review: missing' "missing review.sh named in report"
+
 assert_exit 2 bash "$S" /nonexistent
+assert_exit 1 bash "$OLDPWD/deploy/nightly/run-all.sh" /nonexistent-list-$$
 cd - >/dev/null; rm -rf "$W"; finish

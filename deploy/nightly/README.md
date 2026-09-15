@@ -1,7 +1,8 @@
 # Night shift deploy (box-one)
 
 1. Create user `nightly` on box-one.
-2. As `nightly`: install `mise`, then `mise use -g semgrep trivy jq node@24`.
+2. As `nightly`: install `mise`, then `mise use -g semgrep trivy jq node@24`
+   (shims land in `~/.local/share/mise/shims`, already first on the unit's PATH).
 3. Install opencode: `curl -fsSL https://opencode.ai/install | bash`; `opencode auth login`
    with the **dedicated** opencode go account (not a personal one).
 4. Add one read/write deploy key per repo under `~/.ssh` with a `Host` alias each.
@@ -17,3 +18,7 @@ Monthly: confirm the DeepSeek row on https://opencode.ai/docs/go/ still says
 in each repo.
 
 lefthook is not installed on the server checkouts, so the nightly push runs no hooks.
+
+The docs agent reads the day's diff, so a commit message or comment can carry
+instructions to it; reviewers of `nightly/*` branches should read the docs
+commit before merging.
