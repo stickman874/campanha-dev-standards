@@ -69,7 +69,7 @@ plugins/core/
 |---|---|---|---|
 | `git commit` | lefthook pre-commit | gitleaks on staged; eslint on staged; **design lint**: fail on hardcoded colours/sizes (Tailwind arbitrary values, hex in TSX) | seconds |
 | `git push` (any) | lefthook pre-push | typecheck, unit + integration tests, `semgrep --config auto`, `trivy fs` (fail on CRITICAL/HIGH) | ≤ 3 min |
-| `git push` from Claude | `pre-push-gate.sh` hook | `/codex:adversarial-review` on the diff → fix → `doc-keeper` updates docs + CHANGELOG → then lefthook pre-push | + review time |
+| `git push` from Claude | `pre-push-gate.sh` hook | `codex-review` on the diff (DeepSeek for routine diffs, Codex for sensitive/DeepSeek-written diffs) → fix → `doc-keeper` updates docs + CHANGELOG → then lefthook pre-push | + review time |
 | Any Bash from Claude | `block-unsafe-bash.sh` | no `--no-verify`, no `.env` reads, no destructive DB commands | — |
 | Weekly (scheduled) | `doc-keeper` consolidation | diff `docs/dev/reference` vs code, orphan/stale docs, opens PR for human approval | — |
 
@@ -123,7 +123,7 @@ Rules enforced by `doc-keeper`:
 - Claude answers in the user's language; **all docs and code comments in English**; product UI in pt-PT unless the project says otherwise.
 - Method: superpowers. Brainstorm → plan → **owner approval** → implement with subagents → verify. No GSD.
 - Models: planning with the active model; implementation subagents DeepSeek V4.1 Flash via opencode (`core:deepseek-worker`) where the dev has opencode-go, otherwise Sonnet (Haiku where it suffices); on a quota error fall back to Sonnet; never Kimi as orchestrator; visual verification by a Sonnet subagent in headed Chrome using playwright, screenshots deleted afterwards.
-- Codex (official `codex-plugin-cc`, version pinned) in three places: (1) `/codex:adversarial-review` on the **plan** before implementation starts; (2) `/codex:adversarial-review` on the **diff** before push (enforced by the push gate); (3) `/codex:rescue` only when Claude is stuck on a task, followed by a manual `git diff` check because Codex can report "done" without changes. Codex never implements by default; alternating Claude/Codex per task is out. Revisit `claudex-loop` after two months.
+- Review before push (`codex-review` skill, enforced by the push gate): DeepSeek reviews routine diffs, Codex as fallback; Codex is required for sensitive diffs (auth, personal data, API handlers, uploads, payments, integrations, secrets, the gates themselves) and for any diff carrying DeepSeek's own `Worker: deepseek` trailer, so DeepSeek never reviews its own work; plans go to Codex with DeepSeek as fallback. Codex (official `codex-plugin-cc`, version pinned) also covers: `/codex:adversarial-review` on the **plan** before implementation starts, and `/codex:rescue` only when Claude is stuck on a task, followed by a manual `git diff` check because Codex can report "done" without changes. Codex never implements by default; alternating Claude/Codex per task is out. Revisit `claudex-loop` after two months.
 - Secrets local only; only `.env.example` in the repo.
 - Hosting: Dokploy on Hetzner by default; Vercel allowed per project (declared in `AGENTS.md`).
 - The four multi-tenant projects: row-level isolation enforced in the database, never only in app code. Single-tenant projects declare `tenant: single` and skip the rule.
