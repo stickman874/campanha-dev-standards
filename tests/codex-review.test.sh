@@ -17,7 +17,7 @@ echo b >> src/a.ts; git add -A; c change
 assert_exit 0 bash "$S" base
 assert_contains "$(cat "$FAKE_ARGS")" '^exec$' "runs codex exec"
 assert_contains "$(cat "$FAKE_ARGS")" '^read-only$' "read-only sandbox"
-assert_contains "$(cat "$FAKE_ARGS")" 'between commits base and HEAD' "prompt names the range"
+assert_contains "$(cat "$FAKE_ARGS")" 'changes between commits base and HEAD' "prompt names the range"
 assert_contains "$(cat "$FAKE_ARGS")" '^gpt-5.6-sol$' "routine diff: sol"
 assert_contains "$(cat "$FAKE_ARGS")" 'model_reasoning_effort="medium"' "routine diff: medium"
 assert_contains "$(bash "$S" base 2>&1)" 'codex-review: model=gpt-5.6-sol' "logs model"
