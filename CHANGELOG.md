@@ -4,11 +4,23 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
-### Changed
+## [0.3.0] - 2026-09-15
 
-- Push gates scoped to the diff (spec D14): semgrep and the Codex review run only when the pushed files touch auth, API handlers, db, migrations or the gates; trivy only when dependency manifests or Dockerfiles change; typecheck, tests and docs-check still always. Routine diffs: `bash scripts/codex-review.sh <base>` reviews on demand.
-- Settings template sets `CLAUDE_CODE_SUBAGENT_MODEL=haiku`; CLAUDE.md template forbids Agent Teams and the Codex plugin review gate (spec D15).
-- Research note `docs/superpowers/research/2026-09-15-agentic-workflow-tooling.md`: OmniRoute rejected (ToS and client-privacy risk); minimal stack per pain.
+### Added
+- `scripts/opencode.sh`: one runner for every unattended opencode call (`run --format json`), usage/auth/error/timeout detection, event log.
+- `scripts/review.sh` + `reviewer` agent (read-only DeepSeek on opencode go): JSON findings, blocks on `block`, any `high`, invalid JSON or unavailable reviewer; `SKIP_REVIEW=1` for humans, logged.
+- `scripts/nightly.sh` + `docs` agent + `deploy/nightly/`: night shift on the server (semgrep, trivy, Socket, full review, docs refresh) → `nightly/<date>` branch and `docs/dev/reviews/<date>.md`; ZDR reminder every 35 days.
+- `core:rescue` skill.
+- `worker.sh` exit 4 (wrote nothing) and claimed-vs-real file cross-check.
+### Changed
+- Push gates: typecheck, tests, sensitive-path review only (spec E3). semgrep, trivy and docs-check moved to the night shift.
+- `core:handoff` prints a paste-ready prompt; a file only on request.
+- `block-unsafe-bash.sh` denies `SKIP_REVIEW=1`/`LEFTHOOK=0`/`LEFTHOOK_EXCLUDE` and anchors bypass rules to git commands (no more false positives on quoted text).
+- `deepseek-worker` agent renamed `worker`; never asks for `.env` (no shell).
+- `CLAUDE.md` template: zero ritual on small tasks.
+### Removed
+- `codex-review.sh`, `codex-review` skill, Codex CLI from `mise.toml` (Codex optional, plan quota too small for a push gate).
+- `docs-check.sh` (night shift refreshes docs instead of blocking pushes).
 
 ## [0.2.0] - 2026-09-15
 

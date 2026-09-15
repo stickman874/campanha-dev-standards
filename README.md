@@ -4,18 +4,14 @@ One development methodology for every project: gates, living docs, cheap workers
 
 ## Install (once per person)
 
-    curl https://mise.run | sh   # mise installs the pinned tools per repo
-    codex login                  # Codex CLI comes from mise inside an adopted repo; a ChatGPT plan is required for the pre-push review
-    # optional: opencode with an opencode-go subscription for the DeepSeek worker (otherwise Sonnet is used)
+    curl https://mise.run | sh                           # mise installs the pinned tools per repo
+    curl -fsSL https://opencode.ai/install | bash        # opencode; then: opencode auth login → OpenCode Go (one $10 subscription per dev)
+    # optional: Codex CLI + the openai/codex-plugin-cc plugin for manual /codex:rescue (review gate off)
 
 Then inside Claude Code:
 
     /plugin marketplace add stickman874/campanha-dev-standards
     /plugin install core@campanha-dev-standards
-    /plugin marketplace add openai/codex-plugin-cc
-    /plugin install codex@openai-codex
-
-Pin the Codex plugin version after installing: `/plugin install codex@openai-codex@<version>` (check `/plugin list`).
 
 ## Personal preferences (optional, once per person)
 
@@ -40,13 +36,14 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
 ## What you get
 
 - Commit gates: gitleaks (staged) and eslint, including design lint via `eslint-plugin-better-tailwindcss` (see `docs/dev/how-to/design-lint.md`).
-- Push gates run by lefthook for humans and agents alike, scoped to the diff: typecheck, tests and docs-check always; semgrep and a Codex adversarial review (`scripts/codex-review.sh`, `gpt-6-astra`/medium, blocks on `VERDICT: block`) when the diff touches auth, API handlers, db or the gates; trivy when dependencies change. `bash scripts/codex-review.sh <base>` reviews any diff on demand (`gpt-5.6-sol`/medium).
-- Usage economy: subagents on Haiku by default (`CLAUDE_CODE_SUBAGENT_MODEL` in the settings template), no Agent Teams, Codex on the ChatGPT plan (not API credits), Codex plugin review gate off.
+- Push gates (seconds): typecheck, tests, and a read-only DeepSeek review (`scripts/review.sh`, JSON findings, blocks on `high`) only when the diff touches auth, API handlers, db or the gates. Humans can force with `SKIP_REVIEW=1 git push`; agents cannot.
+- Night shift (`scripts/nightly.sh`, systemd timer on your server, see `deploy/nightly/`): semgrep, trivy, Socket, full review and a docs refresh over everything pushed that day → branch `nightly/<date>` + `docs/dev/reviews/<date>.md`.
+- Usage economy: all gruntwork, review and docs run on opencode go (DeepSeek V4.1 Flash), not on the Claude subscription; subagents on Haiku; no Agent Teams; Codex optional.
 - Claude hooks: `block-secrets.sh` (secret shapes in command text) and `block-unsafe-bash.sh` (`--no-verify`, `hooksPath`, `prisma db push`/`reset`, `supabase db reset --linked`).
 - Secrets: sandbox + `permissions.deny` in the settings template; opencode denies dotenv reads natively.
-- `core:worker` skill: `scripts/worker.sh` runs DeepSeek V4.1 Flash through the project's no-shell opencode agent (`.opencode/agents/deepseek-worker.md`), gives up early on usage limits and falls back to Sonnet.
-- `doc-keeper` agent (mode `diff` before push, `bootstrap` on adopt, `consolidate` weekly) keeps `docs/dev`, `docs/product` and CHANGELOG current.
-- `core:handoff` skill.
+- `core:worker`, `core:review`, `core:rescue` skills over one runner (`scripts/opencode.sh`, `opencode run --format json`); three project agents with real permission limits (`worker`, `reviewer`, `docs`).
+- `doc-keeper` agent (mode `diff` on request or when a feature ships, `bootstrap` on adopt, `consolidate` weekly) keeps `docs/dev`, `docs/product` and CHANGELOG current.
+- `core:handoff` prints a prompt to paste into the next session (any tool).
 - Official plugins enabled by the settings template: superpowers, security-guidance, commit-commands, typescript-lsp, playwright, codex, impeccable.
 
 ## Develop the plugin
@@ -54,4 +51,4 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
     claude --plugin-dir ./plugins/core
     bash tests/run.sh
 
-Designs: [2026-09-10](docs/superpowers/specs/2026-09-10-campanha-dev-standards-design.md) and [2026-09-15 v2 lean](docs/superpowers/specs/2026-09-15-v2-lean-design.md).
+Designs: [2026-09-10](docs/superpowers/specs/2026-09-10-campanha-dev-standards-design.md), [2026-09-15 v2 lean](docs/superpowers/specs/2026-09-15-v2-lean-design.md) and [2026-09-15 v3 opencode go](docs/superpowers/specs/2026-09-15-v3-opencode-go-design.md).
