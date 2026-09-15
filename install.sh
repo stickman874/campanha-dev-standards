@@ -39,7 +39,7 @@ have typescript-language-server || npm install -g typescript-language-server typ
 # opencode: run the core Bash hooks on opencode's bash tool too (plugins/core/opencode/guard.js)
 guard="$HOME/.claude/plugins/marketplaces/campanha-dev-standards/plugins/core/opencode/guard.js"
 if have opencode; then
-  if [ -f "$guard" ]; then mkdir -p ~/.config/opencode/plugins ~/.config/opencode/agents && ln -sfn "$guard" ~/.config/opencode/plugins/core-guard.js && ln -sfn "${guard%/guard.js}/agents/deepseek-worker.md" ~/.config/opencode/agents/deepseek-worker.md && echo "ok       opencode guard + deepseek-worker agent"
+  if [ -f "$guard" ]; then mkdir -p ~/.config/opencode/plugins ~/.config/opencode/agents && ln -sfn "$guard" ~/.config/opencode/plugins/core-guard.js && for a in "${guard%/guard.js}"/agents/*.md; do ln -sfn "$a" ~/.config/opencode/agents/"${a##*/}"; done && echo "ok       opencode guard + deepseek agents"
   else echo "note: opencode guard not linked yet — add the Claude marketplace below, then rerun install.sh"; fi
 fi
 

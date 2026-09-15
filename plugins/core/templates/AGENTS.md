@@ -11,7 +11,8 @@ Write all docs, comments and commit messages in English. Product UI language: se
 ## Models
 - Orchestrator (plans, decides, reviews): the tool's strongest model. Never Kimi.
 - Worker (well-scoped edits and code searches; it has no shell, so the orchestrator runs tests and commands): DeepSeek V4.1 Flash via opencode if you have opencode-go; otherwise Sonnet.
-- On a quota or rate-limit error, fall back to the next option and say so in one line.
+- On a quota or rate-limit error, fall back to the next option and say so in one line. Retry the worker once at the next milestone, never in a loop.
+- Worker returned partial or failing work: one correction round with the exact failure, then the fallback or the orchestrator. No retry loops.
 - Without Claude: `opencode run --agent deepseek-worker --dir <repo> --auto "<task>"` (the agent has no shell).
 
 ## Code navigation

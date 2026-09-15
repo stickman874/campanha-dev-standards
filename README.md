@@ -34,9 +34,9 @@ Team communication defaults ship in each repo's `AGENTS.md` (read by Claude and 
 - Commit: gitleaks + lint + design lint (no hardcoded colours/sizes). `scripts/design-lint.sh` is vendored into each project by `/adopt` — no machine-local path in the committed `lefthook.yml`.
 - Push: typecheck + tests + semgrep + trivy. Claude is blocked from bypassing them with --no-verify.
 - opencode: the same Bash hooks run inside opencode via `plugins/core/opencode/guard.js` (linked by `install.sh`; rerun it after adding the marketplace). For code navigation there too, add `"lsp": true` to `~/.config/opencode/opencode.jsonc` and `export OPENCODE_EXPERIMENTAL_LSP_TOOL=true`.
-- `core:deepseek-worker` agent: hand off scoped edits/searches to DeepSeek V4.1 Flash via a no-shell opencode agent (`install.sh` links it to `~/.config/opencode/agents/`); falls back to Sonnet if opencode, the guard or DeepSeek itself is unavailable.
+- `core:deepseek-worker` skill: `scripts/deepseek.sh` hands scoped edits/searches to DeepSeek V4.1 Flash through a no-shell opencode agent (no model relays the task) and gives up at the first usage-limit error; falls back to Sonnet if opencode, the guard or DeepSeek is unavailable.
 - Code navigation: `/adopt` enables the official LSP plugin for the project's stack (TS, Python, Go, Rust, PHP, C#, Java, Swift, C/C++).
-- Claude push: Codex adversarial review + doc-keeper updates docs and CHANGELOG first.
+- Claude push: independent review (DeepSeek for routine diffs, Codex required for sensitive ones and plans) + doc-keeper updates docs and CHANGELOG first.
 - `security-posture` and `handoff` skills: a judgment checklist for auth/data/API/PII diffs, and end-of-work-block handoff notes in `docs/dev/handoffs/`.
 - `/adopt [--tenant single|multi]`: bring a repo up to the standard, idempotently.
 - `docs/dev` (builders) and `docs/product` (users, manuals) kept current by `doc-keeper`.

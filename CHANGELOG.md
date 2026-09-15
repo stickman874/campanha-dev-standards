@@ -6,6 +6,24 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ### Added
 
+- `core:deepseek-worker` skill + `scripts/deepseek.sh`: Claude runs DeepSeek V4.1 Flash through a script instead of a relay subagent; gives up at the first usage/rate-limit line instead of waiting for the timeout; task packet (Outcome/Inputs/Scope/Preserve/Acceptance) and worker report (`Partial`, `SensitiveSeen`).
+- `deepseek-reviewer` opencode agent: read-only (no edit, shell, web or subagents), used by `codex-review`.
+
+### Changed
+
+- `codex-review`: DeepSeek reviews routine diffs (Codex as fallback); Codex is required for sensitive diffs (authentication, personal data, API handlers, uploads, payments, integrations, secrets, the gates themselves); plans go to Codex with DeepSeek as fallback. The marker records the reviewer. Codex is always called with `--base <base> --scope branch` (the plain branch diff is empty on the default branch).
+- `AGENTS.md` template `## Models`: one correction round for failing worker output, then the fallback; retry the worker once at the next milestone.
+- `install.sh` links every opencode agent in `plugins/core/opencode/agents/`.
+- `core` plugin bumped to 0.1.5.
+
+### Removed
+
+- `core:deepseek-worker` subagent: in an end-to-end test its Haiku relay ignored "do not do the task yourself", edited and committed on its own, and never called DeepSeek.
+
+## [0.1.4] - 2026-09-14
+
+### Added
+
 - `/adopt` enables the official Claude Code LSP plugin for each detected stack (`package.json`/`tsconfig.json` → `typescript-lsp`, `pyproject.toml` → `pyright-lsp`, `go.mod` → `gopls-lsp`, Rust, PHP, C#, Java, Swift, C/C++) in the project's `.claude/settings.json`, and flags a missing language-server binary as `needs-review`. `install.sh` installs `typescript-language-server`.
 - `AGENTS.md` template: `## Code navigation` — prefer the LSP tool (`workspaceSymbol`, `findReferences`, `goToDefinition`/`goToImplementation`, `hover`) over grep/whole-file reads; grep only for plain text; fix diagnostics before moving on. Same operation names in Claude Code and opencode.
 - `core:deepseek-worker` agent: relays a scoped edit/search task to DeepSeek V4.1 Flash via `opencode run --agent deepseek-worker` (opencode agent shipped in `plugins/core/opencode/agents/`, `bash` and `task` denied, linked by `install.sh`; the task goes through a quoted heredoc so it is never shell-expanded); returns `DEEPSEEK_UNAVAILABLE` on missing opencode or missing core guard (never runs `--auto` ungated), usage/rate limit, auth error or timeout (opencode retries limits silently and never exits) so Claude falls back to Sonnet. Templates `AGENTS.md` (new `## Models`) and `CLAUDE.md`, and the design spec, now name DeepSeek-if-available-else-Sonnet as the worker standard.

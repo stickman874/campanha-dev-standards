@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "core",
-      "description": "Hooks, doc-keeper agent, codex-review / security-posture / handoff skills, /adopt and /docs-consolidate commands, project templates.",
+      "description": "Hooks, doc-keeper agent, codex-review / security-posture / handoff / deepseek-worker skills, opencode guard and agents, /adopt and /docs-consolidate commands, project templates.",
       "source": "./plugins/core",
       "category": "productivity"
     }
