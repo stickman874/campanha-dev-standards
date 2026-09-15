@@ -13,6 +13,8 @@ case ${FAKE_MODE:-approve} in
   prose)    j='Sure! Here is my review. {"verdict":"approve","findings":[{"severity":"low","file":"a.ts","line":1,"what":"nit","fix":"none"}]} Hope this helps.';;
   junk)     j='I could not review this.';;
   limit)    echo 'error.error="AI_APICallError: usage limit"' >&2; sleep 30;;
+  pretty)   j=$(jq -n '{"verdict":"approve","findings":[{"severity":"low","file":"a.ts","line":1,"what":"nit","fix":"none"}]}');;
+  fenced)   j=$(printf '```json\n%s\n```' "$(jq -n '{"verdict":"approve","findings":[{"severity":"low","file":"a.ts","line":1,"what":"nit","fix":"none"}]}')");;
 esac
 jq -nc --arg t "$j" '{type:"text",part:{text:$t}}'; echo '{"type":"step_finish","part":{"tokens":{"total":1},"cost":0}}'
 EOF
@@ -37,6 +39,8 @@ out=$(stdin | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "sen
 out=$(stdin | FAKE_MODE=sneaky bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "approve with a high finding = block"
 out=$(stdin | FAKE_MODE=prose bash "$S" 2>&1); code=$?; assert_eq 0 "$code" "JSON inside prose is accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from prose-wrapped JSON printed"
 out=$(stdin | FAKE_MODE=junk bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "no JSON = block"; assert_contains "$out" 'no valid JSON' "explains"
+out=$(FAKE_MODE=pretty bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "pretty-printed multi-line JSON accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from pretty JSON printed"
+out=$(FAKE_MODE=fenced bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "fenced multi-line JSON accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from fenced JSON printed"
 out=$(stdin | FAKE_MODE=limit bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "reviewer unavailable = block"; assert_contains "$out" 'SKIP_REVIEW=1' "tells the human how to force"
 rm -f "$FAKE_ARGS"; out=$(stdin | SKIP_REVIEW=1 FAKE_MODE=block bash "$S" 2>&1); code=$?
 assert_eq 0 "$code" "SKIP_REVIEW=1 passes"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL SKIP_REVIEW called opencode"; FAILS=$((FAILS+1)); } || echo "  ok  SKIP_REVIEW never calls opencode"
@@ -45,4 +49,16 @@ printf 'refs/heads/f %s refs/heads/f %s\n' 0000000000000000000000000000000000000
 printf 'refs/heads/f %s refs/heads/f %s\n' "$(git rev-parse HEAD)" 0000000000000000000000000000000000000000 | FAKE_MODE=approve bash "$S" 2>&1 | grep -q 'range=4b825dc642cb6eb9a060e54bf8d69288fbee4904..' && echo "  ok  first push compared to the empty tree" || { echo "  FAIL first push base"; FAILS=$((FAILS+1)); }
 git checkout -q base; git checkout -q -b same; rm -f "$FAKE_ARGS"; bash "$S" base >/dev/null 2>&1; code=$?
 assert_eq 0 "$code" "empty diff passes"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL empty diff called opencode"; FAILS=$((FAILS+1)); } || echo "  ok  empty diff skips opencode"
+git checkout -q main
+head -c 250000 /dev/zero | tr '\0' a > big.ts; git add -A; c big
+# review.sh's own 200000-byte diff cap always exceeds the kernel's single-argv limit
+# (MAX_ARG_STRLEN, 131072 bytes) that opencode.sh hits when it turns the prompt into a
+# CLI argument for the real `opencode` binary — a pre-existing Task 1 (opencode.sh) limit,
+# not something this range's approve/block outcome depends on. So on a real Linux box this
+# always surfaces as "reviewer unavailable", which is the safe (blocked, never silently
+# approved) outcome; what we can verify here is that review.sh computed and reported the
+# truncation itself before ever reaching opencode.
+rm -f "$FAKE_ARGS"; out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?
+assert_contains "$out" 'diff truncated ([0-9]\+ bytes)' "stderr flags the truncation, with the real size"
+assert_eq 1 "$code" "reviewer unavailable on an oversized prompt still blocks (never a silent approve)"
 cd - >/dev/null; rm -rf "$W"; finish

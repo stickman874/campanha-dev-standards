@@ -24,17 +24,27 @@ ranges() {   # "from to" lines; trees compared directly, so rollbacks are review
   [ -n "$seen" ] || echo "$(git rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || echo origin/main) HEAD"
 }
 if [ "${SKIP_REVIEW:-}" = 1 ]; then
-  mkdir -p docs/dev/reviews; ranges "$@" | sed "s/^/$(date -u +%FT%TZ) $(git config user.name 2>/dev/null || echo '?') /" >> docs/dev/reviews/skipped.log
+  mkdir -p docs/dev/reviews
+  ts=$(date -u +%FT%TZ); who=$(git config user.name 2>/dev/null || echo '?')
+  ranges "$@" | while read -r from to; do printf '%s %s %s %s\n' "$ts" "$who" "$from" "$to"; done >> docs/dev/reviews/skipped.log
   echo "review: skipped by SKIP_REVIEW=1 (logged in docs/dev/reviews/skipped.log; the night shift reviews it)"; exit 0
 fi
 rc=0
 while read -r from to; do
-  changed=$(git diff --name-only "$from" "$to" 2>/dev/null) || { echo "review: cannot diff $from $to" >&2; exit 1; }
+  changed=$(git diff --name-only "$from" "$to" -- 2>/dev/null) || { echo "review: cannot diff $from $to" >&2; exit 1; }
   [ -n "$changed" ] || continue
   if [ -z "$explicit$all" ] && ! printf '%s\n' "$changed" | grep -qiE "$SENSITIVE"; then
     echo "review: routine diff $from..$to, skipped (the night shift reviews it; bash scripts/review.sh $from reviews now)"; continue; fi
   [ -f "$runner" ] || { echo "review: opencode.sh not found (install the core plugin or set OPENCODE_SH)" >&2; exit 1; }
   start=$(date +%s)
+  full=$(git diff "$from" "$to" --)
+  size=$(printf '%s' "$full" | wc -c)
+  body=$(printf '%s' "$full" | head -c 200000)
+  note=
+  if [ "$size" -gt 200000 ]; then
+    note=$'\n'"(diff truncated at 200000 of $size bytes; treat this range as NOT fully reviewed and return verdict block unless you can read the listed files with your tools)"
+    echo "review: diff truncated ($size bytes) for $from..$to" >&2
+  fi
   out=$(OPENCODE_TIMEOUT=${REVIEW_TIMEOUT:-300} bash "$runner" "$PWD" reviewer <<EOF
 Adversarial code review of the change between commits $from and $to in this repository.
 Files changed:
@@ -45,12 +55,14 @@ Output: one JSON object and nothing else, no code fences:
 {"verdict":"approve"|"block","findings":[{"severity":"high"|"medium"|"low","file":"path","line":123,"what":"...","fix":"..."}]}
 Verdict is block if any finding is high.
 Diff:
-$(git diff "$from" "$to" | head -c 200000)
+$body$note
 EOF
   ); code=$?
   echo "review: range=$from..$to secs=$(( $(date +%s) - start ))"
   [ "$code" -eq 0 ] || { echo "$out"; echo "review: reviewer unavailable, push blocked. Fix the cause, or force it yourself: SKIP_REVIEW=1 git push" >&2; rc=1; continue; }
-  json=$(printf '%s\n' "$out" | tr -d '\r' | sed -n 's/^[^{]*\({.*}\)[^}]*$/\1/p; /^{/p' | head -1 | jq -c . 2>/dev/null)   # ponytail: the JSON object on the first line that holds one, prose around it ignored
+  json=$(printf '%s\n' "$out" | tr -d '\r' | sed '/^```/d' | jq -c . 2>/dev/null | head -1)
+  [ -n "$json" ] || json=$(printf '%s\n' "$out" | tr -d '\r' | sed -n 's/^[^{]*\({.*}\)[^}]*$/\1/p; /^{/p' | head -1 | jq -c . 2>/dev/null)   # ponytail: the JSON object on the first line that holds one, prose around it ignored
+  [ "$(printf '%s\n' "$json" | wc -l)" -eq 1 ] || json=
   [ -n "$json" ] || { echo "$out"; echo "review: no valid JSON verdict, blocked" >&2; rc=1; continue; }
   printf '%s' "$json" | jq -r '.findings[]? | "[\(.severity)] \(.file):\(.line) - \(.what) - \(.fix)"'
   verdict=$(printf '%s' "$json" | jq -r '.verdict'); high=$(printf '%s' "$json" | jq '[.findings[]? | select(.severity=="high")] | length')
