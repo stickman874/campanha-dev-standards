@@ -36,13 +36,6 @@ fi
 # language server for the official typescript-lsp Claude Code plugin; /adopt reports the one other stacks need
 have typescript-language-server || npm install -g typescript-language-server typescript || echo "attempting typescript-language-server install failed"
 
-# opencode: run the core Bash hooks on opencode's bash tool too (plugins/core/opencode/guard.js)
-guard="$HOME/.claude/plugins/marketplaces/campanha-dev-standards/plugins/core/opencode/guard.js"
-if have opencode; then
-  if [ -f "$guard" ]; then mkdir -p ~/.config/opencode/plugins ~/.config/opencode/agents && ln -sfn "$guard" ~/.config/opencode/plugins/core-guard.js && for a in "${guard%/guard.js}"/agents/*.md; do ln -sfn "$a" ~/.config/opencode/agents/"${a##*/}"; done && echo "ok       opencode guard + deepseek agents"
-  else echo "note: opencode guard not linked yet — add the Claude marketplace below, then rerun install.sh"; fi
-fi
-
 echo; echo "Now in Claude Code:"
 echo "  /plugin marketplace add stickman874/campanha-dev-standards && /plugin install core@campanha-dev-standards"
 echo "  /plugin marketplace add openai/codex-plugin-cc && /plugin install codex@openai-codex"

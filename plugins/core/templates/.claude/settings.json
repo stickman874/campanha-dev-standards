@@ -2,6 +2,9 @@
   "enabledPlugins": {
     "core@campanha-dev-standards": true,
     "superpowers@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
     "codex@openai-codex": true,
     "impeccable@impeccable": true
@@ -11,5 +14,6 @@
     "openai-codex": { "source": { "source": "github", "repo": "openai/codex-plugin-cc" } },
     "impeccable": { "source": { "source": "github", "repo": "pbakaus/impeccable" } }
   },
+  "sandbox": { "enabled": true, "autoAllowBashIfSandboxed": true },
   "permissions": { "deny": ["Read(./.env)", "Read(./.env.*)"], "allow": ["Read(./.env.example)"] }
 }

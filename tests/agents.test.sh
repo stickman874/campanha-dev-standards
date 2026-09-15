@@ -11,7 +11,6 @@ r=plugins/core/opencode/agents/deepseek-reviewer.md
 assert_contains "$(cat $r)" 'edit: deny' "opencode reviewer agent cannot edit"
 assert_contains "$(cat $r)" 'bash: deny' "opencode reviewer agent has no shell"
 assert_contains "$(cat $o)" 'SensitiveSeen:' "worker report flags sensitive data"
-assert_contains "$(cat install.sh)" 'agents/\*.md' "install.sh links every opencode agent"
 [ -e plugins/core/agents/deepseek-worker.md ] && { echo "  FAIL relay subagent still shipped"; FAILS=$((FAILS+1)); } || echo "  ok  no relay subagent"
 assert_contains "$(cat plugins/core/templates/CLAUDE.md)" 'core:deepseek-worker' "template dispatches to worker"
 finish
