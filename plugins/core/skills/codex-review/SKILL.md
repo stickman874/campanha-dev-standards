@@ -46,7 +46,7 @@ Output starting with `DEEPSEEK_UNAVAILABLE` (exit 3) means unavailable.
 
 1. Commit everything (`git status` clean). The gate keys the marker to HEAD.
 2. Pick the reviewer from the table and run it. Codex: `node "$CODEX" adversarial-review --wait --base <base> --scope branch`. DeepSeek: the script above.
-3. Fix real findings, commit, and run the same reviewer again until it reports nothing material. Max 3 rounds; after that, list the remaining findings to the user and stop.
+3. Fix real findings and commit. Then pick the reviewer again from the table for the full updated diff (a correction can make it sensitive or add a `Worker: deepseek` commit) and run it, until the reviewer reports nothing material. Max 3 rounds; after that, list the remaining findings to the user and stop.
 4. Record the marker for the final HEAD, naming the reviewer:
 
     d="$(git rev-parse --git-dir)/campanha"; mkdir -p "$d" && echo "<codex|deepseek>" > "$d/reviewed-$(git rev-parse HEAD)"

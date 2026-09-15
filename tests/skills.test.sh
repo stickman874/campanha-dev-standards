@@ -17,4 +17,5 @@ assert_contains "$(cat $k)" 'Acceptance:' "worker skill defines the task packet"
 assert_contains "$(cat $k)" 'Worker: deepseek' "worker skill marks commits with DeepSeek-written code"
 assert_contains "$(cat $k)" 'wip: deepseek partial' "worker skill: correction round starts from a WIP commit"
 assert_contains "$(cat $c)" "grep='^Worker: deepseek'" "review: DeepSeek-written diffs go to Codex"
+assert_contains "$(cat $c)" 'pick the reviewer again' "review: reviewer re-chosen after every correction"
 finish
