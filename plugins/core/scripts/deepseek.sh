@@ -59,9 +59,11 @@ launch() {   # $1 = message
 }
 # The worker has no shell, so the script runs the task's `Test:` command for it (the command comes from the
 # caller's packet, not the model) and sends one failure back for a correction round.
+# ponytail: accepted risk — tests execute the worker's unreviewed code with the caller's permissions (secrets,
+# network, files outside Scope), which the no-shell agent otherwise prevents; a bwrap/container sandbox is the upgrade.
 runtests() {
   left=$(( end - $(date +%s) )); [ "$left" -gt 0 ] || left=1
-  (cd "$repo" && timeout "$left" bash -c "$testcmd") > "$tmp/raw" 2>&1; rc=$?
+  (cd "$repo" && timeout --kill-after=5 "$left" bash -c "$testcmd") > "$tmp/raw" 2>&1; rc=$?
   # test output goes back to the model: blank out every value (8+ chars) found in the repo's .env files
   # ponytail: exact-value match only, a test printing an encoded/partial secret still leaks; sandbox is the upgrade
   # values: "quoted", 'quoted', or unquoted up to whitespace or an inline # comment
