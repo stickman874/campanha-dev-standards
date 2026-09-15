@@ -14,7 +14,7 @@ _skip_if_exists:
   - .claude/settings.json
   - .claude/rules/**
 _tasks:
-  - command: "command -v mise >/dev/null && mise install; command -v lefthook >/dev/null && lefthook install; echo 'adopted: run the doc-keeper agent to migrate existing docs'"
+  - command: "mise install && lefthook install && echo 'adopted: run the doc-keeper agent to migrate existing docs'"
     when: "{{ _copier_operation == 'copy' }}"
 project_name:
   type: str

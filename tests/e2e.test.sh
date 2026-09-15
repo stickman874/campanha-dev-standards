@@ -5,7 +5,7 @@ command -v lefthook >/dev/null && command -v gitleaks >/dev/null || { echo "  sk
 
 R=$PWD; T=$(mktemp -d)/fixture; mkdir -p "$T"; cd "$T"; git init -q
 printf '{"name":"fixture","scripts":{"test":"echo tests-ok"},"devDependencies":{}}\n' > package.json
-if command -v copier >/dev/null; then copier copy --trust --defaults --data project_name=fixture --data tenant=single --quiet "$R" "$T" >/dev/null 2>&1 || { echo "  FAIL copier copy"; FAILS=$((FAILS+1)); }
+if command -v copier >/dev/null; then copier copy --trust --skip-tasks --defaults --data project_name=fixture --data tenant=single --quiet "$R" "$T" >/dev/null 2>&1 || { echo "  FAIL copier copy"; FAILS=$((FAILS+1)); }
 else cp -r "$R"/template/. "$T"/ && grep -rl '{{ project_name }}\|{{ tenant }}' "$T" | xargs -r sed -i 's/{{ project_name }}/fixture/g; s/{{ tenant }}/single/g'; fi
 lefthook install >/dev/null 2>&1
 

@@ -5,6 +5,11 @@ cmd=$(jq -r '.tool_input.command // ""')
 deny() { jq -nc --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'; exit 0; }
 printf '%s' "$cmd" | grep -Eq -- '--no-verify|--no-gpg-sign|core\.hooksPath|LEFTHOOK=0|LEFTHOOK_EXCLUDE' \
   && deny "Git hooks are the quality gate. Never bypass them; fix what the hook reports."
+# dotenv files read by a shell command (not merely mentioned, e.g. in a commit message). Belt and braces for repos whose
+# .claude/settings.json predates the sandbox; .env.example is allowed.
+rest=${cmd//.env.example/}
+printf '%s' "$rest" | grep -Eq '(^|[;&|(]|\bsudo|\bxargs)[[:space:]]*(cat|less|more|head|tail|bat|source|\.|grep|rg|sed|awk|cut|cp|mv|python3?|node|export \$\(cat)[^;&|]*[[:space:]/]\.env(\.[A-Za-z0-9_-]+)?([[:space:]]|$|[;&|)])' \
+  && deny "Reading dotenv files is blocked: secrets must never enter the transcript. Use .env.example for variable names."
 printf '%s' "$cmd" | grep -Eq 'prisma (db push|migrate reset)' \
   && deny "prisma db push / migrate reset are forbidden. Use 'prisma migrate dev --name <name>' and never reset a shared database."
 printf '%s' "$cmd" | grep -Eq 'supabase db reset.*--linked' \
