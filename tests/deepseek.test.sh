@@ -50,7 +50,9 @@ out=$(echo "Outcome: x" | ds editfail run "$W/repo"); code=$?
 assert_eq 3 "$code" "edit then limit: exit 3"
 assert_contains "$out" 'Summary: half done' "edit then limit: partial output handed back"
 assert_contains "$out" 'half.txt' "edit then limit: changed files listed for reconciliation"
-rm -f "$W/repo/half.txt"
+git -C "$W/repo" add -A && git -C "$W/repo" -c user.name=t -c user.email=t@t commit -qm "wip: deepseek partial" -m "Worker: deepseek"
+out=$(echo "Outcome: finish the partial work" | FAKE_MODE=ok bash "$D" run "$W/repo"); code=$?
+assert_eq 0 "$code" "correction round runs after a WIP commit"
 
 out=$(echo "Outcome: x" | ds fail run "$W/repo"); assert_contains "$out" 'DEEPSEEK_UNAVAILABLE: opencode exited 1: boom' "crash: reported as unavailable"
 

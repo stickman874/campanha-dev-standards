@@ -15,5 +15,6 @@ k=plugins/core/skills/deepseek-worker/SKILL.md
 assert_contains "$(cat $k)" 'deepseek.sh" run' "worker skill runs the script"
 assert_contains "$(cat $k)" 'Acceptance:' "worker skill defines the task packet"
 assert_contains "$(cat $k)" 'Worker: deepseek' "worker skill marks commits with DeepSeek-written code"
+assert_contains "$(cat $k)" 'wip: deepseek partial' "worker skill: correction round starts from a WIP commit"
 assert_contains "$(cat $c)" "grep='^Worker: deepseek'" "review: DeepSeek-written diffs go to Codex"
 finish

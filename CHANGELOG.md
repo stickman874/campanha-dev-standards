@@ -6,7 +6,7 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ### Added
 
-- `core:deepseek-worker` skill + `scripts/deepseek.sh`: Claude runs DeepSeek V4.1 Flash through a script instead of a relay subagent; gives up at the first usage/rate-limit line instead of waiting for the timeout, handing back any partial output and changed files so the fallback reconciles them first; refuses to start on a dirty working tree, so a failed run can be undone without touching the user's own edits; task packet (Outcome/Inputs/Scope/Preserve/Acceptance) and worker report (`Partial`, `SensitiveSeen`).
+- `core:deepseek-worker` skill + `scripts/deepseek.sh`: Claude runs DeepSeek V4.1 Flash through a script instead of a relay subagent; gives up at the first usage/rate-limit line instead of waiting for the timeout, handing back any partial output and changed files so the fallback reconciles them first; refuses to start on a dirty working tree, so a failed run can be undone without touching the user's own edits (a correction round starts from a local WIP commit, squashed before push); task packet (Outcome/Inputs/Scope/Preserve/Acceptance) and worker report (`Partial`, `SensitiveSeen`).
 - `deepseek-reviewer` opencode agent: read-only (no edit, shell, web or subagents), used by `codex-review`.
 
 ### Changed
