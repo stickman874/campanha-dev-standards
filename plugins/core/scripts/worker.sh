@@ -17,6 +17,7 @@ tools=$(jq -c 'select(.type=="tool_use")' "$events" 2>/dev/null | wc -l)
 [ -z "$changed" ] && [ "$tools" -ge 3 ] && { echo "worker: wrote nothing ($tools tool calls, no file changed)" >&2; exit 4; }
 # ponytail: claims are the "- path — why" lines under Files:; anything git did not see is listed and the caller decides
 claimed=$(printf '%s\n' "$out" | sed -n '/^Files:/,/^[A-Z][a-zA-Z]*:/p' | sed -n 's/^- \([^ ]*\).*/\1/p' | sort -u)
-missing=$(for f in $claimed; do printf '%s\n' "$changed" | grep -qF -- "$f" || echo "$f"; done)
+paths=$(printf '%s\n' "$changed" | sed 's/^...//; s/.* -> //')
+missing=$(for f in $claimed; do printf '%s\n' "$paths" | grep -qxF -- "$f" || echo "$f"; done)
 [ -n "$missing" ] && { echo "--- claimed but unchanged"; echo "$missing"; }
 exit 0
