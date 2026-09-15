@@ -37,11 +37,12 @@ assert_contains "$(cat "$W/args")" 'test -e fixed.txt` fails:' "tests: correctio
 out=$(printf 'Outcome: x\nTest: echo nope; false\n' | ds ok run "$W/repo")
 assert_contains "$out" 'FAIL after one correction round' "tests: still failing is reported"
 assert_contains "$out" 'nope' "tests: failing output shown"
+assert_contains "$(cat "$W/args")" 'nope' "tests: failing output reaches the correction round (no secret files)"
 assert_eq 2 "$(calls)" "tests: no retry loop"
-printf 'API_KEY="sk-live-abcdef123456"\n' > "$W/repo/.env"; echo .env > "$W/repo/.git/info/exclude"
+printf 'API_KEY="sk-live-abcdef123456"\nexport DB_PASS=hunter2hunter2 # production\nTOKEN='"'"'tok-single-quoted'"'"'\n' > "$W/repo/.env"; echo .env > "$W/repo/.git/info/exclude"
 out=$(printf 'Outcome: x\nTest: cat .env; false\n' | ds ok run "$W/repo")
-case "$out$(cat "$W/args")" in *abcdef123456*) echo "  FAIL secret from .env reached the worker or output"; FAILS=$((FAILS+1));; *) echo "  ok  tests: .env values redacted";; esac
-assert_contains "$(cat "$W/args")" 'REDACTED' "tests: redaction marker sent instead"
+case "$out$(cat "$W/args")" in *abcdef123456*|*hunter2hunter2*|*tok-single*) echo "  FAIL secret from .env reached the worker or output"; FAILS=$((FAILS+1));; *) echo "  ok  tests: .env values redacted (quoted, unquoted with comment)";; esac
+assert_contains "$(cat "$W/args")" 'DB_PASS=\[REDACTED\] # production' "tests: redaction marker sent instead"
 rm -f "$W/repo/.env" "$W/repo/.git/info/exclude"
 out=$(echo "Outcome: x" | ds ok run "$W/repo")
 case $out in *'--- tests'*) echo "  FAIL no Test line still ran tests"; FAILS=$((FAILS+1));; *) echo "  ok  no Test line: no tests run";; esac

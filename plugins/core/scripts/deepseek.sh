@@ -64,9 +64,12 @@ runtests() {
   (cd "$repo" && timeout "$left" bash -c "$testcmd") > "$tmp/raw" 2>&1; rc=$?
   # test output goes back to the model: blank out every value (8+ chars) found in the repo's .env files
   # ponytail: exact-value match only, a test printing an encoded/partial secret still leaks; sandbox is the upgrade
+  # values: "quoted", 'quoted', or unquoted up to whitespace or an inline # comment
   find "$repo" -name '.env*' ! -name '*.example' -type f -not -path '*/node_modules/*' -not -path '*/.git/*' \
-    -exec sed -n "s/^[^#=]*=[\"']\{0,1\}\([^\"']\{8,\}\).*/\1/p" {} + 2>/dev/null |
-    awk 'NR==FNR{s[$0];next}{for(v in s)while((i=index($0,v))>0)$0=substr($0,1,i-1)"[REDACTED]"substr($0,i+length(v));print}' - "$tmp/raw" > "$tmp/test"
+    -exec sed -n -e 's/^[^#=]*=[[:space:]]*"\([^"]*\)".*/\1/p' -e "s/^[^#=]*=[[:space:]]*'\([^']*\)'.*/\1/p" \
+      -e "s/^[^#=]*=[[:space:]]*\([^\"'[:space:]#][^[:space:]#]*\).*/\1/p" {} + > "$tmp/secrets" 2>/dev/null
+  awk -v list="$tmp/secrets" 'FILENAME==list{if(length($0)>=8)s[$0];next}
+    {for(v in s)while((i=index($0,v))>0)$0=substr($0,1,i-1)"[REDACTED]"substr($0,i+length(v));print}' "$tmp/secrets" "$tmp/raw" > "$tmp/test"
   return $rc
 }
 
