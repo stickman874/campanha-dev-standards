@@ -42,9 +42,21 @@ out=$(stdin | FAKE_MODE=junk bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "no J
 out=$(FAKE_MODE=pretty bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "pretty-printed multi-line JSON accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from pretty JSON printed"
 out=$(FAKE_MODE=fenced bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "fenced multi-line JSON accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from fenced JSON printed"
 out=$(stdin | FAKE_MODE=limit bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "reviewer unavailable = block"; assert_contains "$out" 'SKIP_REVIEW=1' "tells the human how to force"
+
+# runner discovery: real cache layout is .../core/<version>/scripts/opencode.sh; the newest installed version wins over an older stub
+W2=$(mktemp -d)
+mkdir -p "$W2/.claude/plugins/cache/campanha-dev-standards/core/0.2.0/scripts" "$W2/.claude/plugins/cache/campanha-dev-standards/core/0.3.0/scripts"
+printf '#!/usr/bin/env bash\nexit 99\n' > "$W2/.claude/plugins/cache/campanha-dev-standards/core/0.2.0/scripts/opencode.sh"
+cp "$OPENCODE_SH" "$W2/.claude/plugins/cache/campanha-dev-standards/core/0.3.0/scripts/opencode.sh"
+chmod +x "$W2/.claude/plugins/cache/campanha-dev-standards/core/0.2.0/scripts/opencode.sh" "$W2/.claude/plugins/cache/campanha-dev-standards/core/0.3.0/scripts/opencode.sh"
+out=$(env -u OPENCODE_SH -u CLAUDE_PLUGIN_ROOT HOME="$W2" FAKE_MODE=approve bash "$S" base 2>&1); code=$?
+assert_eq 0 "$code" "runner discovery finds the newest installed cache version, not the older 0.2.0 stub"
+rm -rf "$W2"
+
 rm -f "$FAKE_ARGS"; out=$(stdin | SKIP_REVIEW=1 FAKE_MODE=block bash "$S" 2>&1); code=$?
 assert_eq 0 "$code" "SKIP_REVIEW=1 passes"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL SKIP_REVIEW called opencode"; FAILS=$((FAILS+1)); } || echo "  ok  SKIP_REVIEW never calls opencode"
 assert_contains "$(cat docs/dev/reviews/skipped.log)" "$(git rev-parse HEAD)" "skipped range logged"
+assert_contains "$out" 'commit docs/dev/reviews/skipped.log with your next commit' "tells the human to commit the skipped log"
 printf 'refs/heads/f %s refs/heads/f %s\n' 0000000000000000000000000000000000000000 "$(git rev-parse HEAD)" | bash "$S" >/dev/null 2>&1; assert_eq 0 "$?" "deletion-only push passes"
 printf 'refs/heads/f %s refs/heads/f %s\n' "$(git rev-parse HEAD)" 0000000000000000000000000000000000000000 | FAKE_MODE=approve bash "$S" 2>&1 | grep -q 'range=4b825dc642cb6eb9a060e54bf8d69288fbee4904..' && echo "  ok  first push compared to the empty tree" || { echo "  FAIL first push base"; FAILS=$((FAILS+1)); }
 git checkout -q base; git checkout -q -b same; rm -f "$FAKE_ARGS"; bash "$S" base >/dev/null 2>&1; code=$?

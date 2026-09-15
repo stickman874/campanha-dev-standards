@@ -36,7 +36,7 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
 ## What you get
 
 - Commit gates: gitleaks (staged) and eslint, including design lint via `eslint-plugin-better-tailwindcss` (see `docs/dev/how-to/design-lint.md`).
-- Push gates (seconds): typecheck, tests, and a read-only DeepSeek review (`scripts/review.sh`, JSON findings, blocks on `high`) only when the diff touches auth, API handlers, db or the gates. Humans can force with `SKIP_REVIEW=1 git push`; agents cannot.
+- Push gates (seconds): typecheck, tests, and a read-only DeepSeek review (`scripts/review.sh`, JSON findings, blocks on `high`) only when the diff touches auth, API handlers, db or the gates. Humans can force with `SKIP_REVIEW=1 git push` (commit the log); agents cannot.
 - Night shift (`scripts/nightly.sh`, systemd timer on your server, see `deploy/nightly/`): semgrep, trivy, Socket, full review and a docs refresh over everything pushed that day → branch `nightly/<date>` + `docs/dev/reviews/<date>.md`.
 - Usage economy: all gruntwork, review and docs run on opencode go (DeepSeek V4.1 Flash), not on the Claude subscription; subagents on Haiku; no Agent Teams; Codex optional.
 - Claude hooks: `block-secrets.sh` (secret shapes in command text) and `block-unsafe-bash.sh` (`--no-verify`, `hooksPath`, `prisma db push`/`reset`, `supabase db reset --linked`).

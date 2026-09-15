@@ -13,6 +13,8 @@
    `cp deploy/nightly/nightly.{service,timer} /etc/systemd/system/ && systemctl enable --now nightly.timer`
 8. Check with `systemctl list-timers nightly.timer` and `journalctl -u nightly`.
 
+Socket needs `SOCKET_API_KEY` in the service environment (`Environment=SOCKET_API_KEY=…` via a drop-in `systemctl edit nightly`), otherwise its section shows an auth error and the run continues.
+
 Monthly: confirm the DeepSeek row on https://opencode.ai/docs/go/ still says
 0 days / not used, then commit today's date to `docs/dev/reviews/.zdr-confirmed`
 in each repo.

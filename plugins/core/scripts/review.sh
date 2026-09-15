@@ -8,7 +8,13 @@
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
 runner=${OPENCODE_SH:-}
-[ -n "$runner" ] || for c in "$here/opencode.sh" "${CLAUDE_PLUGIN_ROOT:-}/scripts/opencode.sh" ~/.claude/plugins/cache/*/campanha-dev-standards/*/plugins/core/scripts/opencode.sh ~/.claude/plugins/marketplaces/campanha-dev-standards/plugins/core/scripts/opencode.sh; do [ -f "$c" ] && { runner=$c; break; }; done
+if [ -z "$runner" ]; then
+  for c in "$here/opencode.sh" "${CLAUDE_PLUGIN_ROOT:-}/scripts/opencode.sh"; do [ -f "$c" ] && { runner=$c; break; }; done
+  if [ -z "$runner" ]; then
+    for c in ~/.claude/plugins/cache/campanha-dev-standards/core/*/scripts/opencode.sh; do [ -f "$c" ] && runner=$c; done   # newest version wins, glob sorts ascending
+    [ -n "$runner" ] || { c=~/.claude/plugins/marketplaces/campanha-dev-standards/plugins/core/scripts/opencode.sh; [ -f "$c" ] && runner=$c; }
+  fi
+fi
 z=0000000000000000000000000000000000000000; empty=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|/actions/|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/'
 all=; case ${1:-} in --all) all=1; shift;; esac
@@ -27,7 +33,8 @@ if [ "${SKIP_REVIEW:-}" = 1 ]; then
   mkdir -p docs/dev/reviews
   ts=$(date -u +%FT%TZ); who=$(git config user.name 2>/dev/null || echo '?')
   ranges "$@" | while read -r from to; do printf '%s %s %s %s\n' "$ts" "$who" "$from" "$to"; done >> docs/dev/reviews/skipped.log
-  echo "review: skipped by SKIP_REVIEW=1 (logged in docs/dev/reviews/skipped.log; the night shift reviews it)"; exit 0
+  echo "review: skipped by SKIP_REVIEW=1 (logged in docs/dev/reviews/skipped.log; the night shift reviews it)"
+  echo "review: commit docs/dev/reviews/skipped.log with your next commit so the night shift sees it"; exit 0
 fi
 rc=0
 while read -r from to; do

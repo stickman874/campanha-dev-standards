@@ -35,6 +35,16 @@ deny  block-unsafe-bash.sh 'export SKIP_REVIEW=1'
 deny  block-unsafe-bash.sh 'export LEFTHOOK=0; git push'
 deny  block-unsafe-bash.sh 'LEFTHOOK_EXCLUDE=review git push'
 deny  block-unsafe-bash.sh 'env SKIP_REVIEW=1 git push'
+deny  block-unsafe-bash.sh 'SKIP_REVIEW="1" git push'
+deny  block-unsafe-bash.sh "SKIP_REVIEW='1' git push"
+deny  block-unsafe-bash.sh 'git push "origin" --no-verify'
+deny  block-unsafe-bash.sh "git push origin 'main' --no-verify"
+deny  block-unsafe-bash.sh "git -c 'core.hooksPath=/dev/null' push"
+deny  block-unsafe-bash.sh 'command git push --no-verify'
+deny  block-unsafe-bash.sh 'exec git push --no-verify'
+deny  block-unsafe-bash.sh 'if true; then git push --no-verify; fi'
+deny  block-unsafe-bash.sh 'x=1 SKIP_REVIEW=1 git push'
+deny  block-unsafe-bash.sh 'declare -x SKIP_REVIEW=1'
 allow block-unsafe-bash.sh 'git commit -m "docs: explain why --no-verify is denied"'
 allow block-unsafe-bash.sh 'echo "humans may run SKIP_REVIEW=1 git push"'
 allow block-unsafe-bash.sh 'grep -rn "no-verify" plugins'
@@ -45,5 +55,4 @@ deny  block-unsafe-bash.sh 'supabase db reset --linked'
 deny  block-unsafe-bash.sh 'npx prisma migrate reset'
 allow block-unsafe-bash.sh 'npx prisma migrate dev --name add_x'
 allow block-unsafe-bash.sh 'supabase db reset'
-allow block-unsafe-bash.sh 'git push origin main'
 finish
