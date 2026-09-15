@@ -62,7 +62,6 @@ assert_contains "$(ap "$G" "$(printf '*** Begin Patch\n*** Add File: .env.local\
 assert_eq allow "$(ap "$G" "$(printf '*** Begin Patch\n*** Update File: src/a.ts\n@@\n-a\n+b\n*** End Patch')")" "apply_patch on source allowed"
 
 T=$(mktemp -d); git -C "$T" init -q; git -C "$T" -c user.name=t -c user.email=t@t commit -q --allow-empty -m x
-assert_contains "$(run "$G" bash 'git push origin main' "$T")" 'codex-review' "push without review markers denied"
 
 # symlinked install still finds ../hooks; a copy without hooks blocks loudly
 ln -s "$G" "$T/linked.js"; cp "$G" "$T/orphan.js"

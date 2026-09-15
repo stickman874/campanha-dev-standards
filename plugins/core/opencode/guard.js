@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 // realpath: the file is usually symlinked into ~/.config/opencode/plugins/
 const HOOKS = join(dirname(realpathSync(fileURLToPath(import.meta.url))), "..", "hooks");
-const SCRIPTS = ["block-secrets.sh", "block-unsafe-bash.sh", "pre-push-gate.sh"];
+const SCRIPTS = ["block-secrets.sh", "block-unsafe-bash.sh"];
 
 // native file tools (read, edit, write, grep, glob, list) take filePath/path; same rule as the Claude settings deny list
 const SECRET_FILE = /(^|\/)\.env(\.[^/]+)?$/;

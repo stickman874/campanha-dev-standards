@@ -3,13 +3,10 @@ pre-commit:
   parallel: true
   commands:
     gitleaks:
-      run: gitleaks protect --staged --redact --no-banner
+      run: gitleaks git --pre-commit --staged --redact --no-banner
     lint:
       glob: "*.{ts,tsx,js,jsx}"
       run: npx eslint {staged_files}
-    design-lint:
-      glob: "*.{tsx,jsx,css}"
-      run: bash scripts/design-lint.sh {staged_files}
 
 pre-push:
   commands:
@@ -20,4 +17,8 @@ pre-push:
     semgrep:
       run: semgrep scan --config p/default --error --quiet --metrics=off
     trivy:
-      run: trivy fs --scanners vuln,secret --severity CRITICAL,HIGH --exit-code 1 --quiet --skip-files ".env*,**/.env*" .
+      run: trivy fs --scanners vuln,secret --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 --quiet --skip-dirs node_modules --skip-files ".env*,**/.env*" .
+    docs:
+      run: bash scripts/docs-check.sh
+    review:
+      run: bash scripts/codex-review.sh

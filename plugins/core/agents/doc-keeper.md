@@ -1,6 +1,6 @@
 ---
 name: doc-keeper
-description: Keeps docs/dev (builders) and docs/product (users) current. Invoke before every push with mode push; with mode bootstrap when adopting an existing repo; with mode consolidate for the weekly drift check.
+description: Keeps docs/dev (builders) and docs/product (users) current. Invoke with mode diff before every push (the pre-push docs-check fails otherwise); mode bootstrap when adopting an existing repo; mode consolidate for the weekly drift check.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: sonnet
 ---
@@ -15,8 +15,8 @@ Never create new files in the current-state folders except `docs/product/feature
 
 Business rules are written once, in `docs/product/features/`, in user language. Dev docs link to them instead of repeating them.
 
-## Mode: push
-1. Determine the change set: `git diff --stat @{push}..HEAD` if an upstream exists, else `git diff --stat HEAD~5..HEAD`. Read the actual diff for files you need to understand.
+## Mode: diff
+1. Determine the change set: `base=$(git rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || echo origin/main)` and `git diff --name-only "$base...HEAD"`. Read the actual diff for files you need to understand.
 2. Map each changed path to targets and update them:
    - schema / migrations / `prisma/` / `supabase/` → `docs/dev/reference/data-model.md`
    - env vars, `.env.example` → `docs/dev/reference/env-vars.md`
@@ -27,10 +27,8 @@ Business rules are written once, in `docs/product/features/`, in user language. 
    - UI screens, user-visible behaviour → `docs/product/features/<feature>.md` (what it does, who can use it, steps, rules). If a screen changed, add the line `> Screenshot stale: <screen>` under its heading.
    - a spec or plan in this change set that lists rejected alternatives → new `docs/dev/decisions/NNNN-<kebab-title>.md` using MADR (copy `0000-template.md`, next number).
 3. Add entries under `## [Unreleased]` in `CHANGELOG.md` using Keep a Changelog headings (Added / Changed / Deprecated / Removed / Fixed / Security). One line per user-visible or developer-visible change. Never paste commit messages.
-4. Before committing, capture the current HEAD: `prev=$(git rev-parse HEAD)`. Then commit the docs: `git add docs CHANGELOG.md README.md AGENTS.md && git commit -m "docs: update for <short summary>"`.
-5. Write the marker for the new HEAD, and carry the review marker forward **only if** one existed for the previous HEAD (a docs-only commit does not need a second Codex round):
-   `d=$(git rev-parse --git-dir)/campanha; mkdir -p "$d"; touch "$d/docs-$(git rev-parse HEAD)"; [ -f "$d/reviewed-$prev" ] && touch "$d/reviewed-$(git rev-parse HEAD)"`
-6. Report in 5 lines: files updated, features touched, ADRs created, screenshots flagged, anything you could not classify.
+4. Commit the docs: `git add docs CHANGELOG.md README.md AGENTS.md && git commit -m "docs: update for <short summary>"`.
+5. Report in 5 lines: files updated, features touched, ADRs created, screenshots flagged, anything you could not classify.
 
 ## Mode: bootstrap
 Used once by `/adopt` on an existing repo. Read everything that looks like documentation: `README*`, `docs/**`, root `*.md` (PRD, PRODUCT, DESIGN, RESUMO, handoff…), `.planning/**`, an oversized `CLAUDE.md`/`AGENTS.md`, comments in `prisma/schema.prisma` or `supabase/migrations`.

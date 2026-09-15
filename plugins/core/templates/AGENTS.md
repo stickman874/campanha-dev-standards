@@ -44,7 +44,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 
 ## Gates (do not bypass)
 - commit: gitleaks, eslint, design-lint.
-- push: typecheck, tests, semgrep, trivy. Then Codex adversarial review and doc-keeper when pushing from an agent.
+- push: typecheck, tests, semgrep, trivy, docs-check, Codex adversarial review (`scripts/codex-review.sh`).
 
 ## Exceptions
 <!-- Declared divergences from the standard: `key: value — reason`. Undeclared divergence fails the weekly consolidation. -->

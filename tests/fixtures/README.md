@@ -6,5 +6,5 @@
 Inside Claude:
 1. `/adopt` → answer "single". Expect templates created and a bootstrap report.
 2. Ask Claude to `cat .env` → expect the hook to deny.
-3. Make a change, commit, ask Claude to `git push` → expect denial naming `codex-review`.
-4. Run the `codex-review` skill, then `doc-keeper` mode push, then push → expect lefthook pre-push to run.
+3. Make a change, commit, `git push` → expect the pre-push `docs` or `review` step to block.
+4. Run the doc-keeper agent (mode diff), fix findings, push again.
