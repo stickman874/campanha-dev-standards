@@ -9,12 +9,21 @@ set -u
 repo=${1:-}; agent=${2:-}
 [ -n "$agent" ] && git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { echo "usage: opencode.sh <repo> <agent> < prompt" >&2; exit 2; }
 tmp=$(mktemp -d); pid=
-trap '[ -n "$pid" ] && kill "$pid" 2>/dev/null; rm -rf "$tmp"' EXIT
+SETSID=$(command -v setsid || true)
+stop() {
+  [ -n "$pid" ] || return 0
+  if [ -n "$SETSID" ]; then kill -- "-$pid" 2>/dev/null; else kill "$pid" 2>/dev/null; fi
+  for i in 1 2 3 4 5; do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+  if [ -n "$SETSID" ]; then kill -9 -- "-$pid" 2>/dev/null; else kill -9 "$pid" 2>/dev/null; fi
+  wait "$pid" 2>/dev/null; pid=
+}
+trap 'stop; rm -rf "$tmp"' EXIT
 cat > "$tmp/prompt"; [ -s "$tmp/prompt" ] || { echo "empty prompt" >&2; exit 2; }
 events=${OPENCODE_EVENTS:-$tmp/events}; : > "$events"
 text() { jq -r 'select(.type=="text") | .part.text' "$events" 2>/dev/null; }
+reason() { grep -m1 -iE "$LIMIT" "$1" | sed 's/.*error\.error="//; s/"$//' | cut -c1-200; }
 unavailable() {
-  [ -n "$pid" ] && { kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null; pid=; }
+  stop
   echo "DEEPSEEK_UNAVAILABLE: $1"; text; exit 3
 }
 command -v opencode >/dev/null || unavailable "opencode not installed (curl -fsSL https://opencode.ai/install | bash; opencode auth login)"
@@ -23,15 +32,15 @@ LIMIT='usage limit|rate limit|quota|insufficient (balance|credit)|FreeUsageLimit
 model=(); [ -n "${OPENCODE_MODEL:-}" ] && model=(-m "$OPENCODE_MODEL")
 export OPENCODE_EXPERIMENTAL_LSP_TOOL=true
 timeout=${OPENCODE_TIMEOUT:-600}; end=$(( $(date +%s) + timeout ))
-(cd "$repo" && exec opencode run --format json --agent "$agent" --dir "$repo" --auto ${model[@]+"${model[@]}"} --print-logs --log-level ERROR "$(cat "$tmp/prompt")") > "$events" 2> "$tmp/err" &
+(cd "$repo" && exec ${SETSID:-} opencode run --format json --agent "$agent" --dir "$repo" --auto ${model[@]+"${model[@]}"} --print-logs --log-level ERROR "$(cat "$tmp/prompt")") > "$events" 2> "$tmp/err" &
 pid=$!
 while kill -0 "$pid" 2>/dev/null; do
-  grep -qiE "$LIMIT" "$tmp/err" && unavailable "$(grep -m1 -iE "$LIMIT" "$tmp/err" | sed 's/.*error\.error="//; s/"$//' | cut -c1-200)"
+  grep -qiE "$LIMIT" "$tmp/err" && unavailable "$(reason "$tmp/err")"
   [ "$(date +%s)" -ge "$end" ] && unavailable "timeout after ${timeout}s"
   sleep 1
 done
 wait "$pid"; code=$?; pid=
-grep -qiE "$LIMIT" "$tmp/err" && unavailable "$(grep -m1 -iE "$LIMIT" "$tmp/err" | cut -c1-200)"
+grep -qiE "$LIMIT" "$tmp/err" && unavailable "$(reason "$tmp/err")"
 err=$(jq -r 'select(.type=="error") | (.error.message // .error // .) | tostring' "$events" 2>/dev/null | head -1)
 [ -n "$err" ] && unavailable "opencode error: ${err:0:200}"
 [ "$code" -eq 0 ] || unavailable "opencode exited $code: $(grep -v '^[[:space:]]*$' "$tmp/err" | tail -1 | cut -c1-200)"

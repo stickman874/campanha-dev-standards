@@ -15,6 +15,7 @@ case $FAKE_MODE in
   limit) ev '{"type":"text","part":{"text":"partial"}}'; echo 'level=ERROR error.error="AI_APICallError: 5-hour usage limit reached."' >&2; sleep 30;;
   errev) ev '{"type":"error","error":{"message":"FreeUsageLimitError: free usage exceeded"}}';;
   hang)  sleep 30;;
+  stubborn) trap '' TERM; sleep 30;;
   fail)  echo boom >&2; exit 1;;
 esac
 EOF
@@ -40,6 +41,9 @@ out=$(echo x | run errev "$W/repo" worker 2>/dev/null); code=$?
 assert_eq 3 "$code" "error event: exit 3"; assert_contains "$out" 'FreeUsageLimitError' "error event message reported"
 out=$(echo x | OPENCODE_TIMEOUT=2 run hang "$W/repo" worker 2>/dev/null); code=$?
 assert_eq 3 "$code" "hang: exit 3"; assert_contains "$out" 'timeout after 2s' "timeout reported"
+start=$(date +%s); out=$(echo x | OPENCODE_TIMEOUT=2 run stubborn "$W/repo" worker 2>/dev/null); code=$?
+assert_eq 3 "$code" "stubborn (ignores TERM): exit 3"
+[ $(( $(date +%s) - start )) -lt 12 ] && echo "  ok  kills stubborn process within budget" || { echo "  FAIL waited too long for stubborn kill"; FAILS=$((FAILS+1)); }
 out=$(echo x | run fail "$W/repo" worker 2>/dev/null); assert_contains "$out" 'DEEPSEEK_UNAVAILABLE: opencode exited 1' "crash reported"
 out=$(echo x | run ok "$W/repo" nosuch 2>/dev/null); code=$?; assert_eq 3 "$code" "missing agent file: exit 3"; assert_contains "$out" 'nosuch.md missing' "names the agent file"
 out=$(echo x | PATH=/usr/bin:/bin run ok "$W/repo" worker 2>/dev/null); code=$?; assert_eq 3 "$code" "missing opencode: exit 3"
