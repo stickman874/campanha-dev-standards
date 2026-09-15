@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "campanha-dev-standards",
-  "description": "One development methodology for every project: gates, living docs, security posture. Company-agnostic.",
+  "description": "One development methodology for every project: gates, living docs, security guidance. Company-agnostic.",
   "owner": { "name": "PMC", "url": "https://github.com/stickman874" },
   "plugins": [
     {

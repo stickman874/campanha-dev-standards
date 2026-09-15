@@ -28,7 +28,7 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 - Skill `deepseek-worker` renamed `worker`.
 - Templates moved to `template/` with Jinja placeholders.
 - `/adopt` now runs copier + mise + lefthook.
-- `block-unsafe-bash.sh` also denies `core.hooksPath` and `LEFTHOOK=0` bypasses.
+- `block-unsafe-bash.sh` also denies `core.hooksPath` and `LEFTHOOK=0` bypasses; its dotenv rule now fires only on read commands (quoted or not), not on any mention of the file, and stays as belt and braces for repos whose `.claude/settings.json` predates the sandbox.
 
 ### Removed
 
@@ -40,7 +40,6 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 - `design-lint.sh` (eslint plugin).
 - `install.sh` (mise).
 - `adopt.sh` (copier).
-- The dotenv regex in `block-unsafe-bash.sh`.
 - Eight wording-only test files.
 
 The `[Unreleased]` entries of 0.1.5 (`deepseek.sh` `Test:` loop, DeepSeek reviewer routing, guard agent links) were never released and are superseded by this version.

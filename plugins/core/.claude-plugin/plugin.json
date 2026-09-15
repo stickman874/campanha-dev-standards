@@ -1,7 +1,7 @@
 {
   "name": "core",
   "version": "0.2.0",
-  "description": "Gates, living documentation and security posture for every project.",
+  "description": "Gates, living documentation and security guidance for every project.",
   "author": {
     "name": "PMC",
     "url": "https://github.com/stickman874"
