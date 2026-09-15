@@ -2,7 +2,7 @@
 source "$(dirname "$0")/lib.sh"
 D="$PWD/plugins/core/scripts/worker.sh"
 W=$(mktemp -d); mkdir -p "$W/bin" "$W/repo/.opencode/agents"
-cp plugins/core/templates/.opencode/agents/deepseek-worker.md "$W/repo/.opencode/agents/"
+cp template/.opencode/agents/deepseek-worker.md "$W/repo/.opencode/agents/"
 git -C "$W/repo" init -q; echo a > "$W/repo/a.ts"; git -C "$W/repo" add .; git -C "$W/repo" -c user.name=t -c user.email=t@t commit -qm init
 cat > "$W/bin/opencode" <<'EOF'
 #!/usr/bin/env bash
@@ -36,7 +36,7 @@ out=$(echo x | ws editfail "$W/repo"); assert_contains "$out" 'half.txt' "partia
 out=$(echo x | ws fail "$W/repo"); assert_contains "$out" 'DEEPSEEK_UNAVAILABLE: opencode exited 1' "crash reported"
 git -C "$W/repo" rm -q .opencode/agents/deepseek-worker.md && git -C "$W/repo" -c user.name=t -c user.email=t@t commit -qm "no agent"; out=$(echo x | ws ok "$W/repo"); code=$?
 assert_eq 3 "$code" "missing project agent: exit 3"; git -C "$W/repo" reset -q --hard HEAD~1
-assert_eq 3 "$code" "missing project agent: exit 3"; cp plugins/core/templates/.opencode/agents/deepseek-worker.md "$W/repo/.opencode/agents/"
+assert_eq 3 "$code" "missing project agent: exit 3"; cp template/.opencode/agents/deepseek-worker.md "$W/repo/.opencode/agents/"
 echo dirty >> "$W/repo/a.ts"; rm -f "$FAKE_ARGS"; out=$(echo x | FAKE_MODE=ok bash "$D" "$W/repo" 2>&1); code=$?
 assert_eq 2 "$code" "dirty tree refused"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL launched on dirty tree"; FAILS=$((FAILS+1)); } || echo "  ok  not launched on dirty tree"
 assert_exit 2 bash "$D" /nonexistent

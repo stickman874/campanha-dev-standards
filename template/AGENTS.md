@@ -1,4 +1,4 @@
-# {{PROJECT}} — agent instructions
+# {{ project_name }} — agent instructions
 
 Write all docs, comments and commit messages in English. Product UI language: see docs/product/glossary.md.
 
@@ -39,7 +39,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 - Tests are mandatory; pre-push runs them. New behaviour ships with a test.
 - Secrets: never in the repo; only `.env.example`. Never read `.env*` files.
 - Database: migrations are never edited once applied. Never `db push`/`reset` against a shared database.
-- Tenant model: {{TENANT}}. If `multi`: row-level isolation by tenant is enforced in the database, never only in app code.
+- Tenant model: {{ tenant }}. If `multi`: row-level isolation by tenant is enforced in the database, never only in app code.
 - Hosting: Dokploy on Hetzner unless declared under Exceptions.
 
 ## Gates (do not bypass)

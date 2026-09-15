@@ -8,7 +8,7 @@ Who uses the system and which external systems it talks to.
 ```mermaid
 C4Context
   Person(user, "User")
-  System(app, "{{PROJECT}}")
+  System(app, "{{ project_name }}")
   System_Ext(db, "Database")
   Rel(user, app, "uses")
   Rel(app, db, "reads/writes")
@@ -25,4 +25,4 @@ C4Context
 2. Main business flow: …
 
 ## Constraints and invariants
-- Tenant model: {{TENANT}}.
+- Tenant model: {{ tenant }}.

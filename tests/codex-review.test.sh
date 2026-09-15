@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
-S=$PWD/plugins/core/templates/scripts/codex-review.sh
+S=$PWD/template/scripts/codex-review.sh
 W=$(mktemp -d); mkdir -p "$W/bin"
 cat > "$W/bin/codex" <<'EOF'
 #!/usr/bin/env bash

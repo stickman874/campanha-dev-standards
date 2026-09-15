@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
-S=$PWD/plugins/core/templates/scripts/docs-check.sh
+S=$PWD/template/scripts/docs-check.sh
 T=$(mktemp -d); cd "$T"; git init -q -b main
 c() { git -c user.name=t -c user.email=t@t commit -qm "$1"; }
 mkdir -p src docs; echo a > src/a.ts; echo d > docs/d.md; git add -A; c init

@@ -1,4 +1,4 @@
-# {{PROJECT}}
+# {{ project_name }}
 
 One-paragraph description of what this is and who uses it.
 
