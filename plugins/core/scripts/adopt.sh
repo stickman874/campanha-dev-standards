@@ -20,10 +20,7 @@ while IFS= read -r -d '' src; do
   created+=("$rel")
 done < <(find "$TPL" -type f -print0 | sort -z)
 
-# vendor design-lint.sh into the project so lefthook.yml never references a
-# machine-local plugin path (the previous CAMPANHA_PLUGIN_ROOT substitution
-# broke for a second developer with a different cache path).
-[ -e scripts/design-lint.sh ] || { mkdir -p scripts; cp "$ROOT/scripts/design-lint.sh" scripts/design-lint.sh; created+=("scripts/design-lint.sh"); }
+mkdir -p scripts; for s in "$ROOT"/templates/scripts/*.sh; do [ -e "scripts/${s##*/}" ] || { cp "$s" scripts/; created+=("scripts/${s##*/}"); }; done
 
 # things a human / doc-keeper bootstrap must look at
 [ -f CLAUDE.md ] && [ "$(wc -l < CLAUDE.md)" -gt 20 ] && review+=("CLAUDE.md ($(wc -l < CLAUDE.md) lines; move content to AGENTS.md / .claude/rules / docs)")
@@ -55,7 +52,7 @@ Package.swift:swift-lsp:sourcekit-lsp
 CMakeLists.txt|compile_commands.json:clangd-lsp:clangd
 EOF
 
-if command -v lefthook >/dev/null; then lefthook install >/dev/null 2>&1 && echo "lefthook: installed"; else echo "lefthook: NOT installed (run install.sh)"; fi
+if command -v lefthook >/dev/null; then lefthook install >/dev/null 2>&1 && echo "lefthook: installed"; else echo "lefthook: NOT installed (mise install)"; fi
 for x in ${created[@]+"${created[@]}"}; do echo "created: $x"; done
 for x in ${skipped[@]+"${skipped[@]}"}; do echo "skipped (exists): $x"; done
 for x in ${lsp[@]+"${lsp[@]}"};         do echo "lsp: $x"; done

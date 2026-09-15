@@ -4,7 +4,7 @@ One development methodology for every project I work on. Company-agnostic. Claud
 
 ## Install (once per person)
 
-    bash <(curl -fsSL https://raw.githubusercontent.com/stickman874/campanha-dev-standards/main/install.sh)
+    curl https://mise.run | sh   # (once per machine; then `mise install` inside any adopted repo installs lefthook, gitleaks, semgrep, trivy, codex, copier)
 
 Then inside Claude Code:
 
@@ -31,7 +31,7 @@ Team communication defaults ship in each repo's `AGENTS.md` (read by Claude and 
 
 ## What you get
 
-- Commit: gitleaks + lint + design lint (no hardcoded colours/sizes). `scripts/design-lint.sh` is vendored into each project by `/adopt` — no machine-local path in the committed `lefthook.yml`.
+- Commit: gitleaks + eslint (design lint via eslint-plugin-better-tailwindcss, see the how-to in each project).
 - Push: typecheck + tests + semgrep + trivy. Claude is blocked from bypassing them with --no-verify.
 - `core:deepseek-worker` skill: `scripts/deepseek.sh` hands scoped edits/searches to DeepSeek V4.1 Flash through a no-shell opencode agent (no model relays the task), runs the task's `Test:` command for it with one correction round and gives up at the first usage-limit error; falls back to Sonnet if opencode or DeepSeek is unavailable.
 - Code navigation: `/adopt` enables the official LSP plugin for the project's stack (TS, Python, Go, Rust, PHP, C#, Java, Swift, C/C++).

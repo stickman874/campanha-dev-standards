@@ -14,7 +14,7 @@ assert_contains "$out" 'needs-review: .planning' "flags .planning"
 assert_contains "$out" 'needs-review: no tests' "flags missing tests"
 assert_contains "$(cat AGENTS.md)" '# my-app' "project name substituted"
 assert_contains "$(cat AGENTS.md)" 'Tenant model: multi' "tenant substituted"
-[ -f scripts/design-lint.sh ] && echo "  ok  design-lint.sh vendored" || { echo "  FAIL design-lint.sh not vendored"; FAILS=$((FAILS+1)); }
+[ -f scripts/codex-review.sh ] && [ -f scripts/docs-check.sh ] && echo "  ok  pre-push scripts vendored" || { echo "  FAIL pre-push scripts not vendored"; FAILS=$((FAILS+1)); }
 [ -f docs/dev/architecture.md ] && echo "  ok  docs tree" || { echo "  FAIL docs tree"; FAILS=$((FAILS+1)); }
 [ -f .claude/rules/database.md ] && echo "  ok  rules" || { echo "  FAIL rules"; FAILS=$((FAILS+1)); }
 out2=$(bash "$A" "$T"); assert_contains "$out2" 'skipped (exists): AGENTS.md' "idempotent"

@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
 export PATH="$HOME/.local/bin:$PATH"
-command -v lefthook >/dev/null && command -v gitleaks >/dev/null || { echo "  skip e2e (lefthook or gitleaks missing; run install.sh)"; exit 0; }
+command -v lefthook >/dev/null && command -v gitleaks >/dev/null || { echo "  skip e2e (lefthook or gitleaks missing; mise install)"; exit 0; }
 
 R=$PWD; T=$(mktemp -d)/fixture; mkdir -p "$T"; cd "$T"; git init -q
 printf '{"name":"fixture","scripts":{"test":"echo tests-ok"},"devDependencies":{}}\n' > package.json
 bash "$R/plugins/core/scripts/adopt.sh" "$T" --tenant single >/dev/null
-mkdir -p scripts && cp "$R"/plugins/core/templates/scripts/*.sh scripts/
 
 # The fixture never runs `npm install`, so eslint isn't available and the
 # `lint` pre-commit command (`npx eslint {staged_files}`) would fail on any
