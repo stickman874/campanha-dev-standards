@@ -31,6 +31,7 @@ Team communication defaults ship in each repo's `AGENTS.md` (read by Claude and 
 
 Inside Claude Code run `/adopt`. Or by hand:
 
+    mise use -g pipx:copier          # once per machine (or prefix the next line with `uvx`)
     copier copy --trust gh:stickman874/campanha-dev-standards .
     mise install && lefthook install
 

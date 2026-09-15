@@ -4,7 +4,7 @@ description: Bring this repository up to the campanha-dev-standards (templates, 
 
 # /adopt
 
-1. `copier copy --trust gh:stickman874/campanha-dev-standards .` (answer project name and tenant; explain tenant in one sentence if asked). Existing repo already adopted: `copier update --trust` instead.
+1. Copier is not in the repo yet on a first adopt: `mise use -g pipx:copier` (or prefix the command with `uvx`). Then `copier copy --trust gh:stickman874/campanha-dev-standards .` (answer project name and tenant; explain tenant in one sentence if asked). Existing repo already adopted: `copier update --trust` instead.
 2. Existing repo: copier never overwrites `.claude/settings.json`; merge `"sandbox": { "enabled": true, "autoAllowBashIfSandboxed": true }` and the `security-guidance`/`commit-commands`/`typescript-lsp` plugin entries from the template by hand. Read the output. If `mise` is missing: `curl https://mise.run | sh`, then rerun step 1's task: `mise install && lefthook install`.
 3. If the repo already had documentation (README beyond a stub, `docs/*` outside `dev|product`, root PRD/RESUME/handoff files, `.planning/`, an oversized CLAUDE.md): invoke the `doc-keeper` agent in **mode bootstrap**. It moves content into the standard tree, never deletes sources, and writes `docs/dev/decisions/0001-adopt-report.md` listing what went where and what needs a decision.
 4. Conflicts between old instructions and the standard: security/gate rules → standard wins, list it; conventions → standard wins unless the user confirms an exception under `## Exceptions` in AGENTS.md; more specific rules → keep in AGENTS.md or `.claude/rules/`.

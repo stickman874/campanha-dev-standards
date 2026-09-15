@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # Fails open if jq is missing (cmd empty → allow); deliberate — a broken hook must not block all Bash.
-# PreToolUse/Bash: deny gate bypasses and destructive database commands. Secrets are handled by the sandbox and permissions.deny.
+# PreToolUse/Bash: deny gate bypasses, dotenv reads and destructive database commands.
 cmd=$(jq -r '.tool_input.command // ""')
 deny() { jq -nc --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'; exit 0; }
 printf '%s' "$cmd" | grep -Eq -- '--no-verify|--no-gpg-sign|core\.hooksPath|LEFTHOOK=0|LEFTHOOK_EXCLUDE' \
   && deny "Git hooks are the quality gate. Never bypass them; fix what the hook reports."
-# dotenv files read by a shell command (not merely mentioned, e.g. in a commit message). Belt and braces for repos whose
-# .claude/settings.json predates the sandbox; .env.example is allowed.
+# dotenv files read by a shell command (not merely mentioned, e.g. in a commit message), quoted or not. Belt and braces
+# for repos whose .claude/settings.json predates the sandbox; .env.example is allowed.
 rest=${cmd//.env.example/}
-printf '%s' "$rest" | grep -Eq '(^|[;&|(]|\bsudo|\bxargs)[[:space:]]*(cat|less|more|head|tail|bat|source|\.|grep|rg|sed|awk|cut|cp|mv|python3?|node|export \$\(cat)[^;&|]*[[:space:]/]\.env(\.[A-Za-z0-9_-]+)?([[:space:]]|$|[;&|)])' \
+q='"'"'"   # a double quote and a single quote
+readers='(^|[;&|(]|\bsudo|\bxargs)[[:space:]]*(cat|less|more|head|tail|bat|source|\.|grep|rg|sed|awk|cut|cp|mv|python3?|node|export \$\(cat)[^;&|]*'
+printf '%s' "$rest" | grep -Eq -- "${readers}[[:space:]/${q}]\\.env(\\.[A-Za-z0-9_-]+)?([[:space:]${q}]|\$|[;&|)])" \
   && deny "Reading dotenv files is blocked: secrets must never enter the transcript. Use .env.example for variable names."
 printf '%s' "$cmd" | grep -Eq 'prisma (db push|migrate reset)' \
   && deny "prisma db push / migrate reset are forbidden. Use 'prisma migrate dev --name <name>' and never reset a shared database."

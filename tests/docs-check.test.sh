@@ -13,6 +13,12 @@ assert_exit 0 bash "$S" base
 code_only=$(git rev-parse HEAD~1); git checkout -q base
 printf 'refs/heads/f %s refs/heads/f %s\n' "$code_only" "$(git rev-parse base)" | bash "$S" >/dev/null 2>&1; code=$?
 assert_eq 1 "$code" "stdin range: pushed code-only ref blocked while HEAD is clean"
+printf 'refs/heads/f %s refs/heads/f %s\n' "$(git rev-parse base)" "$code_only" | bash "$S" >/dev/null 2>&1; code=$?
+assert_eq 1 "$code" "rollback push (to is an ancestor of from) is still checked"
+printf 'refs/heads/f %s refs/heads/f %s\n' 0000000000000000000000000000000000000000 "$code_only" | bash "$S" >/dev/null 2>&1; code=$?
+assert_eq 0 "$code" "deletion-only push: nothing to check"
+printf 'refs/heads/f %s refs/heads/f %s\n' "$code_only" 0000000000000000000000000000000000000000 | bash "$S" >/dev/null 2>&1; code=$?
+assert_eq 0 "$code" "first push to an empty remote does not fail (empty tree base; fixture has docs)"
 git checkout -q base; git checkout -q -b readme; echo r > README.md; git add -A; c "readme only"
 assert_exit 0 bash "$S" base
 cd - >/dev/null; rm -rf "$T"; finish

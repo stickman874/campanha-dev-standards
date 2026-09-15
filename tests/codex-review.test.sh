@@ -17,7 +17,7 @@ echo b >> src/a.ts; git add -A; c change
 assert_exit 0 bash "$S" base
 assert_contains "$(cat "$FAKE_ARGS")" '^exec$' "runs codex exec"
 assert_contains "$(cat "$FAKE_ARGS")" '^read-only$' "read-only sandbox"
-assert_contains "$(cat "$FAKE_ARGS")" 'base\.\.\.HEAD' "prompt names the range"
+assert_contains "$(cat "$FAKE_ARGS")" 'between commits base and HEAD' "prompt names the range"
 assert_contains "$(cat "$FAKE_ARGS")" '^gpt-5.6-sol$' "routine diff: sol"
 assert_contains "$(cat "$FAKE_ARGS")" 'model_reasoning_effort="medium"' "routine diff: medium"
 assert_contains "$(bash "$S" base 2>&1)" 'codex-review: model=gpt-5.6-sol' "logs model"
@@ -40,9 +40,16 @@ assert_eq 1 "$code" "only the last line decides (approve then block = block)"
 feat=$(git rev-parse HEAD); git checkout -q base
 out=$(printf 'refs/heads/feat %s refs/heads/feat %s\n' "$feat" "$(git rev-parse base)" | FAKE_VERDICT=block bash "$S" 2>&1); code=$?
 assert_eq 1 "$code" "stdin ranges: pushed ref is reviewed even when HEAD is clean"
-assert_contains "$out" "range=$(git rev-parse base)...$feat" "stdin ranges: logs the pushed range"
+assert_contains "$out" "range=$(git rev-parse base)..$feat" "stdin ranges: logs the pushed range"
 out=$(printf 'refs/heads/feat %s refs/heads/feat %s\n' "$feat" "$(git rev-parse base)" | bash "$S" 2>&1); code=$?
 assert_eq 0 "$code" "stdin ranges: approve passes"
+rm -f "$FAKE_ARGS"; printf 'refs/heads/f %s refs/heads/f %s\n' 0000000000000000000000000000000000000000 "$feat" | bash "$S" >/dev/null 2>&1; code=$?
+assert_eq 0 "$code" "deletion-only push passes"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL deletion-only push called codex"; FAILS=$((FAILS+1)); } || echo "  ok  deletion-only push skips codex"
+out=$(printf 'refs/heads/f %s refs/heads/f %s\n' "$feat" "$(git rev-parse base)" | FAKE_VERDICT=block bash "$S" 2>&1); code=$?
+assert_eq 1 "$code" "rollback push is reviewed (trees compared directly)"
+out=$(printf 'refs/heads/f %s refs/heads/f %s\n' "$feat" 0000000000000000000000000000000000000000 | bash "$S" 2>&1); code=$?
+assert_eq 0 "$code" "first push to an empty remote does not fail"
+assert_contains "$out" 'range=4b825dc642cb6eb9a060e54bf8d69288fbee4904..' "first push: compared against the empty tree"
 git checkout -q base; git checkout -q -b same
 assert_exit 0 bash "$S" base   # empty diff: no codex call
 rm -f "$FAKE_ARGS"; bash "$S" base >/dev/null 2>&1; [ -e "$FAKE_ARGS" ] && { echo "  FAIL empty diff called codex"; FAILS=$((FAILS+1)); } || echo "  ok  empty diff skips codex"

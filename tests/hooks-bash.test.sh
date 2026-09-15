@@ -17,6 +17,8 @@ deny  block-unsafe-bash.sh 'cd app && cat .env.local'
 deny  block-unsafe-bash.sh 'source .env.production'
 deny  block-unsafe-bash.sh 'cat deploy/.env.secrets'
 deny  block-unsafe-bash.sh 'export $(cat .env | xargs)'
+deny  block-unsafe-bash.sh 'cat "deploy/.env.secrets"'
+deny  block-unsafe-bash.sh "cat '.env.local'"
 allow block-unsafe-bash.sh 'cat .env.example'
 allow block-unsafe-bash.sh 'cat deploy/.env.example'
 allow block-unsafe-bash.sh 'cat src/env.ts'
