@@ -2,7 +2,7 @@
 
 # Claude-specific
 - Method: superpowers (brainstorm → plan → approval → implement with subagents → verify).
-- Implementation subagents: `core:deepseek-worker`; if it returns `DEEPSEEK_UNAVAILABLE`, redo the task with a Sonnet subagent. When a skill's implementer step says "run tests and commit", put the test command in the packet's `Test:` line (the script runs it) and commit yourself.
+- Gruntwork (scoped edits, searches): `core:worker` skill (DeepSeek); `DEEPSEEK_UNAVAILABLE` → Sonnet subagent (`Agent` tool, `model: sonnet`). You run the tests, trimmed (`| tail -40`).
 - Before implementing a plan: use the `codex-review` skill on the plan.
 - Before any push: run the `doc-keeper` agent (mode diff); the pre-push hook runs Codex review and the docs check and blocks on failure. One push per unit of work, not per commit.
 - Visual verification: a Sonnet subagent drives headed Chrome via Playwright (viewports 1440×900 and 390×844), then deletes screenshots.

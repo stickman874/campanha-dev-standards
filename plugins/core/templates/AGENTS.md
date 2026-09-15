@@ -10,10 +10,10 @@ Write all docs, comments and commit messages in English. Product UI language: se
 
 ## Models
 - Orchestrator (plans, decides, reviews): the tool's strongest model. Never Kimi.
-- Worker (well-scoped edits and code searches): DeepSeek V4.1 Flash via opencode if you have opencode-go; otherwise Sonnet. It has no shell, but tasks that need tests still go to it: its script runs the task's `Test:` command and sends a failure back once. The orchestrator commits.
+- Worker (well-scoped edits and code searches): DeepSeek V4.1 Flash via opencode if you have opencode-go; otherwise Sonnet. The orchestrator commits.
 - On a quota or rate-limit error, fall back to the next option and say so in one line. Retry the worker once at the next milestone, never in a loop.
 - Worker returned partial or failing work: one correction round with the exact failure, then the fallback or the orchestrator. No retry loops.
-- Without Claude: `opencode run --agent deepseek-worker --dir <repo> --auto "<task>"` (the agent has no shell).
+- Without Claude: `opencode run --agent deepseek-worker --auto "<task>"` from the repo (agent in `.opencode/agents/`, no shell).
 
 ## Code navigation
 - Prefer the language server over grep or reading whole files when the tool has one (the LSP tool in Claude Code and opencode): `workspaceSymbol` to find a definition, `findReferences` for usages, `goToDefinition`/`goToImplementation` to jump to source, `hover` for types without reading the file.
