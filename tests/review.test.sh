@@ -50,15 +50,14 @@ printf 'refs/heads/f %s refs/heads/f %s\n' "$(git rev-parse HEAD)" 0000000000000
 git checkout -q base; git checkout -q -b same; rm -f "$FAKE_ARGS"; bash "$S" base >/dev/null 2>&1; code=$?
 assert_eq 0 "$code" "empty diff passes"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL empty diff called opencode"; FAILS=$((FAILS+1)); } || echo "  ok  empty diff skips opencode"
 git checkout -q main
-head -c 250000 /dev/zero | tr '\0' a > big.ts; git add -A; c big
-# review.sh's own 200000-byte diff cap always exceeds the kernel's single-argv limit
-# (MAX_ARG_STRLEN, 131072 bytes) that opencode.sh hits when it turns the prompt into a
-# CLI argument for the real `opencode` binary — a pre-existing Task 1 (opencode.sh) limit,
-# not something this range's approve/block outcome depends on. So on a real Linux box this
-# always surfaces as "reviewer unavailable", which is the safe (blocked, never silently
-# approved) outcome; what we can verify here is that review.sh computed and reported the
-# truncation itself before ever reaching opencode.
+head -c 130000 /dev/zero | tr '\0' a > big.ts; git add -A; c big
+# review.sh's diff cap (CAP=100000) keeps the whole prompt (body + note + file list +
+# instructions) well under the kernel's single-argv limit (MAX_ARG_STRLEN, 131072 bytes)
+# that opencode.sh hits when it turns the prompt into a CLI argument for the real
+# `opencode` binary, so the call reaches the fake reviewer normally: FAKE_MODE=approve
+# means exit 0, and the fake's captured prompt (and stderr) both show the truncation.
 rm -f "$FAKE_ARGS"; out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?
+assert_eq 0 "$code" "big diff, truncated but still reviewed and approved"
 assert_contains "$out" 'diff truncated ([0-9]\+ bytes)' "stderr flags the truncation, with the real size"
-assert_eq 1 "$code" "reviewer unavailable on an oversized prompt still blocks (never a silent approve)"
+assert_contains "$(cat "$FAKE_ARGS")" 'diff truncated' "prompt flags the truncation"
 cd - >/dev/null; rm -rf "$W"; finish
