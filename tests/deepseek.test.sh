@@ -45,6 +45,9 @@ printf 'API_KEY="sk-live-abcdef123456"\nexport DB_PASS=hunter2hunter2 # producti
 out=$(printf 'Outcome: x\nTest: cat .env; false\n' | ds ok run "$W/repo")
 case "$out$(cat "$W/args")" in *abcdef123456*|*hunter2hunter2*|*tok-single*) echo "  FAIL secret from .env reached the worker or output"; FAILS=$((FAILS+1));; *) echo "  ok  tests: .env values redacted (quoted, unquoted with comment)";; esac
 assert_contains "$(cat "$W/args")" 'DB_PASS=\[REDACTED\] # production' "tests: redaction marker sent instead"
+printf 'PLACEHOLDER=REDACTED\n' > "$W/repo/.env"
+start=$(date +%s); out=$(printf 'Outcome: x\nTest: cat .env; false\n' | DEEPSEEK_TIMEOUT=20 ds ok run "$W/repo")
+[ $(( $(date +%s) - start )) -lt 15 ] && echo "  ok  tests: a secret equal to the marker does not loop" || { echo "  FAIL tests: redaction looped"; FAILS=$((FAILS+1)); }
 rm -f "$W/repo/.env" "$W/repo/.git/info/exclude"
 out=$(echo "Outcome: x" | ds ok run "$W/repo")
 case $out in *'--- tests'*) echo "  FAIL no Test line still ran tests"; FAILS=$((FAILS+1));; *) echo "  ok  no Test line: no tests run";; esac

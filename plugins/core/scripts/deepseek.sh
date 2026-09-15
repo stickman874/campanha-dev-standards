@@ -71,7 +71,7 @@ runtests() {
     -exec sed -n -e 's/^[^#=]*=[[:space:]]*"\([^"]*\)".*/\1/p' -e "s/^[^#=]*=[[:space:]]*'\([^']*\)'.*/\1/p" \
       -e "s/^[^#=]*=[[:space:]]*\([^\"'[:space:]#][^[:space:]#]*\).*/\1/p" {} + > "$tmp/secrets" 2>/dev/null
   awk -v list="$tmp/secrets" 'FILENAME==list{if(length($0)>=8)s[$0];next}
-    {for(v in s)while((i=index($0,v))>0)$0=substr($0,1,i-1)"[REDACTED]"substr($0,i+length(v));print}' "$tmp/secrets" "$tmp/raw" > "$tmp/test"
+    {for(v in s){o="";r=$0;while((i=index(r,v))>0){o=o substr(r,1,i-1)"[REDACTED]";r=substr(r,i+length(v))};$0=o r};print}' "$tmp/secrets" "$tmp/raw" > "$tmp/test"
   return $rc
 }
 
