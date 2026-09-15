@@ -58,6 +58,8 @@ assert_eq 0 "$code" "SKIP_REVIEW=1 passes"; [ -e "$FAKE_ARGS" ] && { echo "  FAI
 assert_contains "$(cat docs/dev/reviews/skipped.log)" "$(git rev-parse HEAD)" "skipped range logged"
 assert_contains "$out" 'commit docs/dev/reviews/skipped.log with your next commit' "tells the human to commit the skipped log"
 printf 'refs/heads/f %s refs/heads/f %s\n' 0000000000000000000000000000000000000000 "$(git rev-parse HEAD)" | bash "$S" >/dev/null 2>&1; assert_eq 0 "$?" "deletion-only push passes"
+out=$(printf 'refs/heads/main %s refs/heads/main %s\n' "$(git rev-parse HEAD)" deadbeefdeadbeefdeadbeefdeadbeefdeadbeef | FAKE_MODE=approve bash "$S" 2>&1); code=$?
+assert_eq 0 "$code" "unknown remote sha (local behind): reviewed against merge-base, not 'cannot diff'"; assert_contains "$out" 'range=' "unknown remote sha: a range was reviewed"
 printf 'refs/heads/f %s refs/heads/f %s\n' "$(git rev-parse HEAD)" 0000000000000000000000000000000000000000 | FAKE_MODE=approve bash "$S" 2>&1 | grep -q 'range=4b825dc642cb6eb9a060e54bf8d69288fbee4904..' && echo "  ok  first push compared to the empty tree" || { echo "  FAIL first push base"; FAILS=$((FAILS+1)); }
 git checkout -q base; git checkout -q -b same; rm -f "$FAKE_ARGS"; bash "$S" base >/dev/null 2>&1; code=$?
 assert_eq 0 "$code" "empty diff passes"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL empty diff called opencode"; FAILS=$((FAILS+1)); } || echo "  ok  empty diff skips opencode"

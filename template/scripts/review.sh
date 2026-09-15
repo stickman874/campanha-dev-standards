@@ -24,6 +24,7 @@ ranges() {   # "from to" lines; trees compared directly, so rollbacks are review
   local lref lsha rref rsha seen=
   if [ ! -t 0 ]; then while read -r lref lsha rref rsha; do
     seen=1; [ "${lsha:-$z}" = "$z" ] && continue                                 # branch deletion
+    [ "${rsha:-$z}" = "$z" ] || git cat-file -e "$rsha" 2>/dev/null || rsha=$z   # remote sha not fetched (local branch behind): fall back like a new branch
     [ "${rsha:-$z}" = "$z" ] && rsha=$(git merge-base origin/HEAD "$lsha" 2>/dev/null || git merge-base origin/main "$lsha" 2>/dev/null || echo "$empty")
     echo "$rsha $lsha"
   done; fi

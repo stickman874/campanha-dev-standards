@@ -4,6 +4,10 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+### Fixed
+
+- `review.sh`: a remote sha not present locally (branch behind origin) no longer fails with "cannot diff"; the range falls back to the merge-base like a new branch.
+
 ## [0.3.0] - 2026-09-15
 
 ### Added
