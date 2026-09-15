@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "core",
-      "description": "Hooks, doc-keeper agent, codex-review / security-posture / handoff / deepseek-worker skills, opencode guard and agents, /adopt and /docs-consolidate commands, project templates.",
+      "description": "Two Bash hooks, doc-keeper agent, worker / codex-review / handoff skills, /adopt and /docs-consolidate commands; project template via copier (lefthook gates incl. Codex review, mise.toml, docs tree).",
       "source": "./plugins/core",
       "category": "productivity"
     }

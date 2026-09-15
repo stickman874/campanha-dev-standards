@@ -1,4 +1,5 @@
 # campanha-dev-standards — Design
+> Sections 3.3, 4 and 7 are superseded by `2026-09-15-v2-lean-design.md` (v2). The documentation tree (§5) and conventions (§6) still apply.
 
 Date: 2026-09-10 · Status: draft for owner review · Language of all docs: English
 

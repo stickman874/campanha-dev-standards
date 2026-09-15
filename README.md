@@ -1,10 +1,12 @@
 # campanha-dev-standards
 
-One development methodology for every project I work on. Company-agnostic. Claude Code plugin + git hooks + three scanners.
+One development methodology for every project: gates, living docs, cheap workers, cross-vendor review. Company-agnostic. A Claude Code plugin + a copier template.
 
 ## Install (once per person)
 
-    curl https://mise.run | sh   # (once per machine; then `mise install` inside any adopted repo installs lefthook, gitleaks, semgrep, trivy, codex, copier)
+    curl https://mise.run | sh   # mise installs the pinned tools per repo
+    codex login                  # Codex CLI comes from mise inside an adopted repo; a ChatGPT plan is required for the pre-push review
+    # optional: opencode with an opencode-go subscription for the DeepSeek worker (otherwise Sonnet is used)
 
 Then inside Claude Code:
 
@@ -25,26 +27,29 @@ Team communication defaults ship in each repo's `AGENTS.md` (read by Claude and 
     - Concise, always: shortest wording that carries the substance. Cut preamble and recaps. Save tokens.
     - Multiple choice: use the Claude Code option selector, and mark one option (recommended).
 
-## Bring a project up to standard (once per repo)
+## Adopt a repo (once per repo)
 
-    /adopt
+Inside Claude Code run `/adopt`. Or by hand:
+
+    copier copy --trust gh:stickman874/campanha-dev-standards .
+    mise install && lefthook install
+
+To pull template updates later: `copier update --trust`. Files you edit by hand — AGENTS.md, docs/, README, CHANGELOG, DESIGN.md, SECURITY.md, .claude/ — are never overwritten.
 
 ## What you get
 
-- Commit: gitleaks + eslint (design lint via eslint-plugin-better-tailwindcss, see the how-to in each project).
-- Push: typecheck + tests + semgrep + trivy. Claude is blocked from bypassing them with --no-verify.
-- `core:deepseek-worker` skill: `scripts/deepseek.sh` hands scoped edits/searches to DeepSeek V4.1 Flash through a no-shell opencode agent (no model relays the task), runs the task's `Test:` command for it with one correction round and gives up at the first usage-limit error; falls back to Sonnet if opencode or DeepSeek is unavailable.
-- Code navigation: `/adopt` enables the official LSP plugin for the project's stack (TS, Python, Go, Rust, PHP, C#, Java, Swift, C/C++).
-- Claude push: independent review (DeepSeek for routine diffs, Codex required for sensitive ones and plans) + doc-keeper updates docs and CHANGELOG first.
-- `handoff` skill: end-of-work-block handoff notes in `docs/dev/handoffs/`.
-- Secrets: Claude Code sandbox + `permissions.deny` for dotenv files (settings template); opencode denies dotenv reads natively.
-- `/adopt [--tenant single|multi]`: bring a repo up to the standard, idempotently.
-- `docs/dev` (builders) and `docs/product` (users, manuals) kept current by `doc-keeper`.
-- `/docs-consolidate` weekly: docs vs code drift → PR.
-
-See `docs/superpowers/specs/` for the design.
+- Commit gates: gitleaks (staged) and eslint, including design lint via `eslint-plugin-better-tailwindcss` (see `docs/dev/how-to/design-lint.md`).
+- Push gates run by lefthook for humans and agents alike: typecheck, tests, semgrep, trivy, docs-check and a Codex adversarial review via `scripts/codex-review.sh` — routine diffs on `gpt-5.6-sol`/medium, sensitive diffs on `gpt-6-astra`/medium; blocks on `VERDICT: block`.
+- Claude hooks: `block-secrets.sh` (secret shapes in command text) and `block-unsafe-bash.sh` (`--no-verify`, `hooksPath`, `prisma db push`/`reset`, `supabase db reset --linked`).
+- Secrets: sandbox + `permissions.deny` in the settings template; opencode denies dotenv reads natively.
+- `core:worker` skill: `scripts/worker.sh` runs DeepSeek V4.1 Flash through the project's no-shell opencode agent (`.opencode/agents/deepseek-worker.md`), gives up early on usage limits and falls back to Sonnet.
+- `doc-keeper` agent (mode `diff` before push, `bootstrap` on adopt, `consolidate` weekly) keeps `docs/dev`, `docs/product` and CHANGELOG current.
+- `core:handoff` skill.
+- Official plugins enabled by the settings template: superpowers, security-guidance, commit-commands, typescript-lsp, playwright, codex, impeccable.
 
 ## Develop the plugin
 
     claude --plugin-dir ./plugins/core
     bash tests/run.sh
+
+Designs: [2026-09-10](docs/superpowers/specs/2026-09-10-campanha-dev-standards-design.md) and [2026-09-15 v2 lean](docs/superpowers/specs/2026-09-15-v2-lean-design.md).

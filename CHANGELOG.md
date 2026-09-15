@@ -4,22 +4,46 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-15
+
 ### Added
 
-- `core:deepseek-worker` skill + `scripts/deepseek.sh`: Claude runs DeepSeek V4.1 Flash through a script instead of a relay subagent; gives up at the first usage/rate-limit line instead of waiting for the timeout, handing back any partial output and changed files so the fallback reconciles them first; refuses to start on a dirty working tree, so a failed run can be undone without touching the user's own edits (a correction round starts from a local WIP commit, squashed before push); task packet (Outcome/Inputs/Scope/Preserve/Acceptance) and worker report (`Partial`, `SensitiveSeen`).
-- `deepseek-reviewer` opencode agent: read-only (no edit, shell, web or subagents), used by `codex-review`.
+- `scripts/codex-review.sh`: pre-push Codex review, model by diff sensitivity, `VERDICT` gate, `CODEX_REVIEW_MODEL`/`CODEX_REVIEW_EFFORT` overrides.
+- `scripts/docs-check.sh`: push blocked when code changed without `docs/` or `CHANGELOG`.
+- `scripts/worker.sh` + `core:worker` skill.
+- `template/mise.toml`.
+- Copier template (`copier.yml`, `copier update` re-sync, `.copier-answers.yml`).
+- `docs/dev/how-to/design-lint.md`.
+- Settings template enables sandbox, security-guidance, commit-commands, typescript-lsp.
+- The opencode worker agent ships in each project at `.opencode/agents/`.
 
 ### Changed
 
-- `deepseek.sh run`: runs the task packet's `Test:` command after the worker finishes and, if it fails, sends the output back for one correction round; reports `tests: pass` or `FAIL after one correction round`. The worker still has no shell (the command comes from the caller). Values from the repo's `.env` files are redacted from test output before it reaches the model (quoted, unquoted, inline comments). Test runs are hard-killed 5 s after the time budget. Accepted risk: the tests execute the worker's unreviewed code with the caller's permissions, so the skill says to leave `Test:` out for auth, secrets, payments and deploy tasks. Orchestrators were sending test-bearing tasks to Sonnet because the worker had no shell.
-- `codex-review`: DeepSeek reviews routine diffs (Codex as fallback); Codex is required for sensitive diffs (authentication, personal data, API handlers, uploads, payments, integrations, secrets, the gates themselves); plans go to Codex with DeepSeek as fallback. Diffs with DeepSeek-written code (commits carrying the `Worker: deepseek` trailer, which the worker skill requires) always go to Codex, so DeepSeek never reviews its own work. The marker records the reviewer. Codex is always called with `--base <base> --scope branch` (the plain branch diff is empty on the default branch).
-- `AGENTS.md` template `## Models`: one correction round for failing worker output, then the fallback; retry the worker once at the next milestone.
-- `install.sh` links every opencode agent in `plugins/core/opencode/agents/`.
-- `core` plugin bumped to 0.1.5.
+- Enforcement moved from a Claude-only push gate to lefthook `pre-push` (humans and agents alike).
+- Codex called with `gpt-5.6-sol`/medium by default and `gpt-6-astra`/medium for sensitive paths instead of the global astra/low.
+- gitleaks pre-commit uses `gitleaks git --pre-commit --staged` (`protect` is deprecated).
+- trivy adds `--ignore-unfixed --skip-dirs node_modules`.
+- `doc-keeper` mode push renamed `diff`, no marker files.
+- Docs tree pruned (no `docs/product/manual`, `docs/dev/{specs,plans,research}`; adopt report now `docs/dev/decisions/0001-adopt-report.md`).
+- Skill `deepseek-worker` renamed `worker`.
+- Templates moved to `template/` with Jinja placeholders.
+- `/adopt` now runs copier + mise + lefthook.
+- `block-unsafe-bash.sh` also denies `core.hooksPath` and `LEFTHOOK=0` bypasses.
 
 ### Removed
 
-- `core:deepseek-worker` subagent: in an end-to-end test its Haiku relay ignored "do not do the task yourself", edited and committed on its own, and never called DeepSeek.
+- `pre-push-gate.sh` and `.git/campanha` marker files.
+- opencode `guard.js` (opencode permission defaults cover dotenv reads; the sandbox covers Claude).
+- `deepseek.sh` review mode, test loop, redaction and the `deepseek-reviewer` agent (the orchestrator runs tests; Codex reviews every push).
+- `Worker: deepseek` trailer.
+- `security-posture` skill (official `security-guidance` plugin).
+- `design-lint.sh` (eslint plugin).
+- `install.sh` (mise).
+- `adopt.sh` (copier).
+- The dotenv regex in `block-unsafe-bash.sh`.
+- Eight wording-only test files.
+
+The `[Unreleased]` entries of 0.1.5 (`deepseek.sh` `Test:` loop, DeepSeek reviewer routing, guard agent links) were never released and are superseded by this version.
 
 ## [0.1.4] - 2026-09-14
 
