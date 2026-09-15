@@ -16,7 +16,7 @@ if [ -z "$runner" ]; then
   fi
 fi
 z=0000000000000000000000000000000000000000; empty=4b825dc642cb6eb9a060e54bf8d69288fbee4904
-SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|/actions/|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/'
+SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|actions|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/'
 all=; case ${1:-} in --all) all=1; shift;; esac
 explicit=${1:+1}
 ranges() {   # "from to" lines; trees compared directly, so rollbacks are reviewed too

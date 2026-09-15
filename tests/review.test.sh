@@ -33,6 +33,8 @@ assert_eq 0 "$code" "explicit range: reviewed and approved"; assert_contains "$(
 assert_contains "$(cat "$FAKE_ARGS")" 'src/a.ts' "prompt lists changed files"; assert_contains "$(cat "$FAKE_ARGS")" '^+b$' "prompt carries the diff"
 out=$(stdin | FAKE_MODE=block bash "$S" --all 2>&1); code=$?
 assert_eq 1 "$code" "--all reviews routine ranges and blocks on block"; assert_contains "$out" '\[high\] src/app/api/r.ts:3 - no auth check - call requireUser()' "findings printed as lines"
+mkdir -p "src/app/(app)/rh"; echo a > "src/app/(app)/rh/actions.ts"; git add -A; c action
+out=$(stdin | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "actions.ts (server action file) counts as sensitive"
 mkdir -p src/app/api; echo h > src/app/api/r.ts; git add -A; c api
 out=$(stdin | FAKE_MODE=approve bash "$S" 2>&1); code=$?; assert_eq 0 "$code" "sensitive range approved passes"; assert_contains "$out" "range=$(git rev-parse base)..$(git rev-parse HEAD)" "logs range"
 out=$(stdin | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "sensitive range blocked"

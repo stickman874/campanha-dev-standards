@@ -6,6 +6,7 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ### Fixed
 
+- `review.sh`: `actions.ts` server-action files count as sensitive (the pattern required `/actions/`). Found by the DeepSeek reviewer on its first real push.
 - `review.sh`: a remote sha not present locally (branch behind origin) no longer fails with "cannot diff"; the range falls back to the merge-base like a new branch.
 
 ## [0.3.0] - 2026-09-15
