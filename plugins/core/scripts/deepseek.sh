@@ -26,8 +26,9 @@ if [ "$mode" = review ] && [ -n "$base" ]; then
   files=(-f "$tmp/diff.patch")
 fi
 
+# -f takes a list and would swallow a message placed after it, so attachments go last.
 (cd "$repo" && exec opencode run --agent "$agent" --dir "$repo" --auto --print-logs --log-level ERROR \
-  ${files[@]+"${files[@]}"} "$(cat "$tmp/task.md")") > "$tmp/out" 2> "$tmp/err" &
+  "$(cat "$tmp/task.md")" ${files[@]+"${files[@]}"}) > "$tmp/out" 2> "$tmp/err" &
 pid=$!
 
 # opencode retries a usage/rate limit silently and never exits: watch its error log and give up at the first hit.

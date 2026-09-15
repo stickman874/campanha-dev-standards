@@ -11,7 +11,7 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ### Changed
 
-- `codex-review`: DeepSeek reviews routine diffs (Codex as fallback); Codex is required for sensitive diffs (authentication, personal data, API handlers, uploads, payments, integrations, secrets, the gates themselves); plans go to Codex with DeepSeek as fallback. The marker records the reviewer. Codex is always called with `--base <base> --scope branch` (the plain branch diff is empty on the default branch).
+- `codex-review`: DeepSeek reviews routine diffs (Codex as fallback); Codex is required for sensitive diffs (authentication, personal data, API handlers, uploads, payments, integrations, secrets, the gates themselves); plans go to Codex with DeepSeek as fallback. Diffs with DeepSeek-written code (commits carrying the `Worker: deepseek` trailer, which the worker skill requires) always go to Codex, so DeepSeek never reviews its own work. The marker records the reviewer. Codex is always called with `--base <base> --scope branch` (the plain branch diff is empty on the default branch).
 - `AGENTS.md` template `## Models`: one correction round for failing worker output, then the fallback; retry the worker once at the next milestone.
 - `install.sh` links every opencode agent in `plugins/core/opencode/agents/`.
 - `core` plugin bumped to 0.1.5.

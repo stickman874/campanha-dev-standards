@@ -54,6 +54,8 @@ assert_contains "$out" 'core guard or opencode deepseek-worker agent not install
 out=$(echo "focus: change" | ds ok review "$W/repo" "$base")
 assert_contains "$(cat "$W/args")" '^deepseek-reviewer$' "review: uses the read-only reviewer agent"
 assert_contains "$(cat "$W/attached")" '^+b$' "review: diff base...HEAD attached"
+assert_eq "-f" "$(tail -2 "$W/args" | head -1)" "review: attachment passed after the message (-f would swallow it)"
+assert_eq "focus: change" "$(tail -3 "$W/args" | head -1)" "review: message is the argument before -f"
 rm -f "$W/attached"
 echo "review the plan in docs/plan.md" | ds ok review "$W/repo" >/dev/null
 [ -e "$W/attached" ] && { echo "  FAIL plan review attached a diff"; FAILS=$((FAILS+1)); } || echo "  ok  plan review: no diff attached"

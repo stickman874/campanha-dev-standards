@@ -31,4 +31,4 @@ One outcome per call. Split anything bigger.
 - Otherwise read the diff yourself and run the tests or typecheck it lists under `Verify:`. It cannot run them.
 - `Partial: true` or a failing check: one correction round with the exact failure. If it fails again, use a Sonnet subagent or do it yourself.
 - `SensitiveSeen` other than `none`: check that nothing secret landed in files or output. If a real secret was exposed, rotate it and tell the user.
-- It never commits; you do.
+- It never commits; you do. Add the trailer `Worker: deepseek` to every commit that contains its changes, so `codex-review` sends that diff to Codex instead of letting DeepSeek review its own work.

@@ -12,6 +12,7 @@ Rule: the model that wrote the code never judges it alone. Another vendor's mode
 | What | Reviewer | If the reviewer is unavailable |
 | --- | --- | --- |
 | A diff touching authentication, permissions, personal data, API handlers, uploads, payments, external integrations, secrets, or the gates themselves (hooks, guard, `.claude/settings.json`, `lefthook.yml`, CI) | Codex, required | Tell the user and stop. No push. |
+| A diff containing DeepSeek-written code: any commit in `git log <base>..HEAD --grep='^Worker: deepseek'` | Codex, required (DeepSeek never reviews its own work) | Tell the user and stop. No push. |
 | Any other diff | DeepSeek | Codex |
 | A plan, before implementation | Codex | DeepSeek |
 
