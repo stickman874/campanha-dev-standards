@@ -13,7 +13,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 - Worker (well-scoped edits and code searches): DeepSeek V4.1 Flash via opencode if you have opencode-go; otherwise Sonnet. The orchestrator commits.
 - On a quota or rate-limit error, fall back to the next option and say so in one line. Retry the worker once at the next milestone, never in a loop.
 - Worker returned partial or failing work: one correction round with the exact failure, then the fallback or the orchestrator. No retry loops.
-- Without Claude: `opencode run --agent deepseek-worker --auto "<task>"` from the repo (agent in `.opencode/agents/`, no shell).
+- Without Claude: `opencode run --agent worker --auto "<task>"` from the repo (agent in `.opencode/agents/`, no shell).
 
 ## Code navigation
 - Prefer the language server over grep or reading whole files when the tool has one (the LSP tool in Claude Code and opencode): `workspaceSymbol` to find a definition, `findReferences` for usages, `goToDefinition`/`goToImplementation` to jump to source, `hover` for types without reading the file.
@@ -30,7 +30,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 - Current-state docs for builders: `docs/dev/` (architecture, how-to, reference, explanation). Read `docs/dev/architecture.md` first.
 - Product behaviour and business rules: `docs/product/features/`. Rules live there once; do not restate them in code comments or dev docs.
 - Decisions: `docs/dev/decisions/` (MADR). History: `docs/dev/{specs,plans,research,handoffs}/`.
-- Latest handoff: newest file in `docs/dev/handoffs/`. Read it at session start.
+- Handoffs arrive as a pasted prompt; `docs/dev/handoffs/` holds only the ones written on request.
 
 ## Conventions
 - Files kebab-case, components PascalCase, constants UPPER_SNAKE, database snake_case.
@@ -44,7 +44,9 @@ Write all docs, comments and commit messages in English. Product UI language: se
 
 ## Gates (do not bypass)
 - commit: gitleaks, eslint (incl. design lint).
-- push: typecheck, tests, docs-check always; semgrep and Codex adversarial review (`scripts/codex-review.sh`) when the diff touches auth, API handlers, db or the gates; trivy when dependencies change.
+- push: typecheck, tests; `scripts/review.sh` (DeepSeek, read-only) when the diff touches auth, API handlers, db or the gates.
+- night shift (server): semgrep, trivy, Socket, review of everything pushed, docs refresh → branch `nightly/<date>` and `docs/dev/reviews/<date>.md`. Read the latest report at session start.
+- Humans may force a push with `SKIP_REVIEW=1 git push` (logged in `docs/dev/reviews/skipped.log` — commit that file; reviewed at night). Agents may not.
 
 ## Exceptions
 <!-- Declared divergences from the standard: `key: value — reason`. Undeclared divergence fails the weekly consolidation. -->

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
-for f in plugins/core/hooks/*.sh plugins/core/scripts/*.sh template/scripts/*.sh; do assert_exit 0 bash -n "$f"; done
+for f in plugins/core/hooks/*.sh plugins/core/scripts/*.sh template/scripts/*.sh deploy/nightly/*.sh; do assert_exit 0 bash -n "$f"; done
 for f in plugins/core/skills/*/SKILL.md plugins/core/agents/*.md plugins/core/commands/*.md template/.opencode/agents/*.md; do
   assert_eq "---" "$(head -1 "$f")" "frontmatter: $f"; assert_contains "$(head -6 "$f")" 'description:' "description: $f"
 done

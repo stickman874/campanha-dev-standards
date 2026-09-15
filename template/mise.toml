@@ -1,4 +1,5 @@
 # Tool versions for the campanha-dev-standards gates. `mise install` once per clone; `mise upgrade` to bump.
+# opencode is not installable by mise: curl -fsSL https://opencode.ai/install | bash, then opencode auth login (opencode go).
 [tools]
 node = "24"
 jq = "latest"
@@ -6,6 +7,5 @@ lefthook = "latest"
 gitleaks = "latest"
 semgrep = "latest"
 trivy = "latest"
-"npm:@openai/codex" = "latest"
 "npm:typescript-language-server" = "latest"
 "pipx:copier" = "latest"

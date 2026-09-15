@@ -14,15 +14,6 @@ pre-push:
       run: npx tsc --noEmit
     test:
       run: npm test --if-present -- --run
-    semgrep:   # only when pushed files touch risky paths; skipped otherwise
-      glob: "{**/api/**,**/*auth*/**,**/*auth*.{ts,tsx,js},**/actions/**,server/**,prisma/**,supabase/**,**/*.sql}"
-      run: semgrep scan --config p/default --error --quiet --metrics=off {push_files}
-    trivy:     # only when dependencies or images change
-      glob: "{package.json,package-lock.json,pnpm-lock.yaml,yarn.lock,Dockerfile*,docker-compose*}"
-      run: trivy fs --scanners vuln,secret --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 --quiet --skip-dirs node_modules --skip-files ".env*,**/.env*" .
-    docs:
+    review:   # sensitive paths only; routine diffs are reviewed by the night shift. SKIP_REVIEW=1 git push to force (humans only)
       use_stdin: true
-      run: bash scripts/docs-check.sh
-    review:
-      use_stdin: true
-      run: bash scripts/codex-review.sh
+      run: bash scripts/review.sh

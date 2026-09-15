@@ -1,6 +1,6 @@
 ---
 name: doc-keeper
-description: Keeps docs/dev (builders) and docs/product (users) current. Invoke with mode diff before every push (the pre-push docs-check fails otherwise); mode bootstrap when adopting an existing repo; mode consolidate for the weekly drift check.
+description: Keeps docs/dev (builders) and docs/product (users) current. Mode diff on request or when a feature ships (the night shift covers routine changes); mode bootstrap when adopting an existing repo; mode consolidate for the weekly drift check.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: sonnet
 ---

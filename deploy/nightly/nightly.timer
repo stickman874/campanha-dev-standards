@@ -1,0 +1,7 @@
+[Unit]
+Description=campanha night shift, 03:00 UTC daily
+[Timer]
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+[Install]
+WantedBy=timers.target

@@ -3,8 +3,16 @@
 # PreToolUse/Bash: deny gate bypasses, dotenv reads and destructive database commands.
 cmd=$(jq -r '.tool_input.command // ""')
 deny() { jq -nc --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'; exit 0; }
-printf '%s' "$cmd" | grep -Eq -- '--no-verify|--no-gpg-sign|core\.hooksPath|LEFTHOOK=0|LEFTHOOK_EXCLUDE' \
+# Gate bypasses, anchored to a real git/lefthook invocation in the same command segment (quotes, heredocs and commit messages do not match).
+# Quoted args are stepped over as opaque blocks (so a --no-verify inside a commit message never matches) but the group can also
+# stop right at a quote's opening mark, so a flag whose value itself starts with the target text (e.g. -c 'core.hooksPath=...') still matches.
+seg="(^|[;&|(][[:space:]]*)(\\b(sudo|env|command|exec|then|do|time|nohup)[[:space:]]+)*([A-Za-z_][A-Za-z0-9_]*=(\"[^\"]*\"|'[^']*'|[^[:space:]]*)[[:space:]]+)*"
+printf '%s' "$cmd" | grep -Eq -- "${seg}(git|lefthook|npx[[:space:]]+lefthook)[[:space:]]+([^;&|\"']|\"[^\"]*\"|'[^']*')*(--no-verify|--no-gpg-sign)" \
   && deny "Git hooks are the quality gate. Never bypass them; fix what the hook reports."
+printf '%s' "$cmd" | grep -Eq -- "${seg}git[[:space:]]+([^;&|\"']|\"[^\"]*\"|'[^']*')*['\"]?core\\.hooksPath" \
+  && deny "Git hooks are the quality gate. Never bypass them; fix what the hook reports."
+printf '%s' "$cmd" | grep -Eq -- "${seg}((export|declare[[:space:]]+-x)[[:space:]]+)?(SKIP_REVIEW=(\"1\"|'1'|1)|LEFTHOOK=(\"0\"|'0'|0)|LEFTHOOK_EXCLUDE=)" \
+  && deny "Skipping the review is the human's call, not yours. Tell the user why it blocked and the exact command they can type themselves."
 # dotenv files read by a shell command (not merely mentioned, e.g. in a commit message), quoted or not. Belt and braces
 # for repos whose .claude/settings.json predates the sandbox; .env.example is allowed.
 rest=${cmd//.env.example/}
