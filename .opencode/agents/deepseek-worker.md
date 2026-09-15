@@ -1,0 +1,1 @@
+../../plugins/core/templates/.opencode/agents/deepseek-worker.md
