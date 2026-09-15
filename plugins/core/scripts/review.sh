@@ -48,7 +48,7 @@ while read -r from to; do
   CAP=100000   # the whole prompt (this + file list + instructions) is passed as a single argv to opencode, capped well under the kernel's 131072-byte MAX_ARG_STRLEN
   full=$(git diff "$from" "$to" --)
   size=$(printf '%s' "$full" | wc -c)
-  body=$(printf '%s' "$full" | head -c "$CAP")
+  body=$({ printf '%s' "$full" 2>/dev/null; } | head -c "$CAP")   # printf may get EPIPE from head: silence it
   note=
   if [ "$size" -gt "$CAP" ]; then
     note=$'\n'"(diff truncated at $CAP of $size bytes; treat this range as NOT fully reviewed and return verdict block unless you can read the listed files with your tools)"

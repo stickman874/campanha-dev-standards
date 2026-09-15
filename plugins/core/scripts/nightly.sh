@@ -29,7 +29,7 @@ step() {   # step <name> <command...>: appends a section; a missing tool is name
   step socket npx --yes socket@1 scan create .
   echo; echo "## Review"; echo; echo '```'
   if [ -f scripts/review.sh ]; then
-    printf 'refs/heads/main %s refs/heads/main %s\n' "$to" "$from" | timeout 900 bash scripts/review.sh --all 2>&1; r=$?
+    printf 'refs/heads/main %s refs/heads/main %s\n' "$to" "$from" | REVIEW_TIMEOUT=${NIGHTLY_REVIEW_TIMEOUT:-1500} timeout 1800 bash scripts/review.sh --all 2>&1; r=$?   # the night has time: one big range may need >5 min of file reads
     [ "$r" -gt 1 ] && rc=1   # r=1 means the reviewer blocked findings, not a failed step
   else
     echo "review: missing"; rc=1
@@ -37,13 +37,15 @@ step() {   # step <name> <command...>: appends a section; a missing tool is name
   echo '```'
 } > "$report" 2>&1
 grep -qE 'reviewer unavailable|opencode\.sh not found|cannot diff|no valid JSON|No such file' "$report" && rc=1
-body=$(printf '%s\n\nDiff (for context, read the files themselves when unsure):\n%s' "$(git diff --name-only "$from" "$to")" "$(git diff "$from" "$to" --)" | head -c "$CAP")
+body=$({ printf '%s\n\nDiff (for context, read the files themselves when unsure):\n%s' "$(git diff --name-only "$from" "$to")" "$(git diff "$from" "$to" --)" 2>/dev/null; } | head -c "$CAP")
 out=$(bash "$OPENCODE_SH" "$PWD" docs <<EOF
 Refresh the documentation for these files changed between $from and $to:
 $body
 EOF
 ); d=$?; { echo; echo "## Docs"; echo; echo '```'; echo "$out" | tail -n 60; echo '```'; } >> "$report"; [ $d -eq 0 ] || rc=1
 git add -A docs; git add CHANGELOG.md 2>/dev/null; git -c user.name="night shift" -c user.email="nightly@localhost" commit -qm "docs: night shift $day" 2>/dev/null || true
-git push -q -f origin "$branch" || { echo "nightly: push failed" >&2; rc=1; }
-if [ $rc -eq 0 ]; then echo "$to" > "$state"; : > docs/dev/reviews/skipped.log 2>/dev/null || true; fi
+if git push -q -f origin "$branch"; then
+  echo "$to" > "$state"   # advance once the report is on origin, even on rc=1: the report and systemd carry the failure; redoing a giant range every night would wedge the job
+  [ $rc -eq 0 ] && { : > docs/dev/reviews/skipped.log 2>/dev/null || true; }
+else echo "nightly: push failed" >&2; rc=1; fi
 echo "nightly: $branch pushed, report $report, rc=$rc"; exit $rc
