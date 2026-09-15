@@ -4,6 +4,12 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+### Changed
+
+- Push gates scoped to the diff (spec D14): semgrep and the Codex review run only when the pushed files touch auth, API handlers, db, migrations or the gates; trivy only when dependency manifests or Dockerfiles change; typecheck, tests and docs-check still always. Routine diffs: `bash scripts/codex-review.sh <base>` reviews on demand.
+- Settings template sets `CLAUDE_CODE_SUBAGENT_MODEL=haiku`; CLAUDE.md template forbids Agent Teams and the Codex plugin review gate (spec D15).
+- Research note `docs/superpowers/research/2026-09-15-agentic-workflow-tooling.md`: OmniRoute rejected (ToS and client-privacy risk); minimal stack per pain.
+
 ## [0.2.0] - 2026-09-15
 
 ### Added

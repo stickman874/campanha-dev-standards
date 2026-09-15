@@ -40,7 +40,8 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
 ## What you get
 
 - Commit gates: gitleaks (staged) and eslint, including design lint via `eslint-plugin-better-tailwindcss` (see `docs/dev/how-to/design-lint.md`).
-- Push gates run by lefthook for humans and agents alike: typecheck, tests, semgrep, trivy, docs-check and a Codex adversarial review via `scripts/codex-review.sh` — routine diffs on `gpt-5.6-sol`/medium, sensitive diffs on `gpt-6-astra`/medium; blocks on `VERDICT: block`.
+- Push gates run by lefthook for humans and agents alike, scoped to the diff: typecheck, tests and docs-check always; semgrep and a Codex adversarial review (`scripts/codex-review.sh`, `gpt-6-astra`/medium, blocks on `VERDICT: block`) when the diff touches auth, API handlers, db or the gates; trivy when dependencies change. `bash scripts/codex-review.sh <base>` reviews any diff on demand (`gpt-5.6-sol`/medium).
+- Usage economy: subagents on Haiku by default (`CLAUDE_CODE_SUBAGENT_MODEL` in the settings template), no Agent Teams, Codex on the ChatGPT plan (not API credits), Codex plugin review gate off.
 - Claude hooks: `block-secrets.sh` (secret shapes in command text) and `block-unsafe-bash.sh` (`--no-verify`, `hooksPath`, `prisma db push`/`reset`, `supabase db reset --linked`).
 - Secrets: sandbox + `permissions.deny` in the settings template; opencode denies dotenv reads natively.
 - `core:worker` skill: `scripts/worker.sh` runs DeepSeek V4.1 Flash through the project's no-shell opencode agent (`.opencode/agents/deepseek-worker.md`), gives up early on usage limits and falls back to Sonnet.

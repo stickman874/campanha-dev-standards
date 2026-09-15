@@ -23,6 +23,8 @@ The 2026-09-15 review found ~1,900 lines of custom code doing what native featur
 | D11 | **Docs tree pruned:** drop `docs/product/manual/`, `docs/dev/research/`, `docs/dev/plans/`, `docs/dev/specs/` (superpowers writes to `docs/superpowers/`). Keep `architecture.md`, `decisions/`, `how-to/`, `reference/`, `explanation/`, `handoffs/`, `docs/product/{features,roles.md,glossary.md}`. | — |
 | D12 | **Tests test behaviour only:** one test file per script (`hooks-bash`, `worker`, `codex-review`, `docs-check`, `e2e`), plus `bash -n` and frontmatter parse for Markdown assets. No "file contains phrase" tests. | 8 wording tests |
 | D13 | `gitleaks git --pre-commit --staged` replaces the deprecated `gitleaks protect`. trivy gets `--ignore-unfixed --skip-dirs node_modules`. | — |
+| D14 | **Gates scoped to the diff** (second pass, 2026-09-15). The pain was the full suite on every push, not the standard itself. `pre-push`: typecheck, tests, docs-check always; semgrep (lefthook `glob` on `{push_files}`) and Codex review (`codex-review.sh` skips routine stdin ranges) only when the diff touches auth, API handlers, db/migrations or the gates; trivy only when dependency manifests or Dockerfiles change. `bash scripts/codex-review.sh <base>` reviews any diff on demand. | Codex + semgrep + trivy on every push |
+| D15 | **Usage economy** (research `docs/superpowers/research/2026-09-15-agentic-workflow-tooling.md`): subagents on Haiku via `CLAUDE_CODE_SUBAGENT_MODEL` in the settings template; no Agent Teams; Codex on ChatGPT-plan auth, plugin review gate off. OmniRoute and any Claude-OAuth reuse rejected (ToS, client privacy). | — |
 
 ## Layout after v2
 

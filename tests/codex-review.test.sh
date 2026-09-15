@@ -28,6 +28,11 @@ assert_contains "$out" 'VERDICT: block' "shows the review"
 out=$(FAKE_VERDICT="" FAKE_FINDINGS="x" bash "$S" base 2>&1); code=$?
 [ "$code" -ne 0 ] && echo "  ok  missing verdict fails closed" || { echo "  FAIL missing verdict passed"; FAILS=$((FAILS+1)); }
 
+# hook (stdin) ranges: a routine diff is skipped, even without codex
+rm -f "$FAKE_ARGS"; out=$(printf 'refs/heads/main %s refs/heads/main %s\n' "$(git rev-parse HEAD)" "$(git rev-parse base)" | PATH=/usr/bin:/bin FAKE_VERDICT=block bash "$S" 2>&1); code=$?
+assert_eq 0 "$code" "stdin routine diff: skipped"
+assert_contains "$out" 'routine diff' "stdin routine diff: says why"
+[ -e "$FAKE_ARGS" ] && { echo "  FAIL stdin routine diff called codex"; FAILS=$((FAILS+1)); } || echo "  ok  stdin routine diff skips codex"
 mkdir -p src/app/api; echo h > src/app/api/r.ts; git add -A; c api
 bash "$S" base >/dev/null 2>&1
 assert_contains "$(cat "$FAKE_ARGS")" '^gpt-6-astra$' "sensitive diff: astra"

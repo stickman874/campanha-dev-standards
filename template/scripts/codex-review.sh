@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# pre-push: Codex adversarial review of every range being pushed. Blocks on VERDICT: block or a missing verdict.
-# Model: sol/medium for routine diffs, astra/medium when the diff touches auth, payments, API handlers, migrations or the gates.
+# pre-push: Codex adversarial review of sensitive ranges being pushed (auth, payments, API handlers, migrations, the gates). Blocks on VERDICT: block or a missing verdict.
+# Routine ranges are skipped by the hook; `bash scripts/codex-review.sh <base>` reviews any diff on demand (sol/medium; sensitive diffs get astra/medium).
 # Ranges come from git's pre-push stdin (lefthook: use_stdin: true) or from an explicit <base> argument.
 set -u
 z=0000000000000000000000000000000000000000
@@ -16,7 +16,6 @@ ranges() {   # prints "from to" lines; trees are compared directly, so rollbacks
   done; fi
   [ -n "$seen" ] || echo "$(git rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || echo origin/main) HEAD"
 }
-command -v codex >/dev/null || { echo "codex-review: codex CLI not found (mise install; codex login)" >&2; exit 1; }
 tmp=$(mktemp); trap 'rm -f "$tmp"' EXIT
 rc_all=0
 while read -r from to; do
@@ -24,6 +23,8 @@ while read -r from to; do
   [ -n "$changed" ] || continue
   model=gpt-5.6-sol; effort=medium
   printf '%s\n' "$changed" | grep -qiE 'auth|session|permission|payment|stripe|billing|src/app/api/|/actions/|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|scripts/(codex-review|docs-check)' && model=gpt-6-astra
+  [ -n "${1:-}" ] || [ "$model" = gpt-6-astra ] || { echo "codex-review: routine diff $from..$to, skipped (bash scripts/codex-review.sh <base> reviews it on demand)"; continue; }
+  command -v codex >/dev/null || { echo "codex-review: codex CLI not found (mise install; codex login)" >&2; exit 1; }
   model=${CODEX_REVIEW_MODEL:-$model}; effort=${CODEX_REVIEW_EFFORT:-$effort}
   start=$(date +%s); : > "$tmp"
   # codex review --base rejects a custom prompt, so use exec in a read-only sandbox and let Codex run the diff itself
