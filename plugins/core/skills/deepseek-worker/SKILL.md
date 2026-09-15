@@ -11,7 +11,7 @@ A script drives opencode's no-shell `deepseek-worker` agent, so no model relays 
     <task packet>
     DEEPSEEK_TASK_END
 
-The quoted heredoc keeps backticks and `$(...)` in the task from running in your shell. Pick another delimiter if the task contains that exact line.
+Commit or stash your own changes first: `run` refuses a dirty working tree, so the worker's edits can always be told apart from yours. The quoted heredoc keeps backticks and `$(...)` in the task from running in your shell. Pick another delimiter if the task contains that exact line.
 
 ## Task packet
 
@@ -27,7 +27,7 @@ One outcome per call. Split anything bigger.
 
 ## After it returns
 
-- `DEEPSEEK_UNAVAILABLE` (exit 3): it may have stopped halfway. Read the partial output and `git status` it prints; keep or revert (`git checkout -- <file>`) those changes, then give the task to a Sonnet subagent with that state described. Retry DeepSeek once at the next milestone, never in a loop.
+- `DEEPSEEK_UNAVAILABLE` (exit 3): it may have stopped halfway. Read the partial output and `git status` it prints. The tree was clean before the run (the script refuses otherwise), so every change listed is the worker's: keep it, or revert it (`git checkout -- <file>`, and `git clean -f <file>` for new files). Then give the task to a Sonnet subagent with that state described. Retry DeepSeek once at the next milestone, never in a loop.
 - Otherwise read the diff yourself and run the tests or typecheck it lists under `Verify:`. It cannot run them.
 - `Partial: true` or a failing check: one correction round with the exact failure. If it fails again, use a Sonnet subagent or do it yourself.
 - `SensitiveSeen` other than `none`: check that nothing secret landed in files or output. If a real secret was exposed, rotate it and tell the user.

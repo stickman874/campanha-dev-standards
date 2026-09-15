@@ -23,7 +23,7 @@ esac
 EOF
 chmod +x "$W/bin/opencode"
 export PATH="$W/bin:$PATH" OPENCODE_CONFIG_DIR="$W/oc" FAKE_ARGS="$W/args" FAKE_ATTACH="$W/attached"
-ds() { FAKE_MODE=$1 bash "$D" "${@:2}"; }
+ds() { git -C "$W/repo" checkout -q -- .; git -C "$W/repo" clean -fdq; FAKE_MODE=$1 bash "$D" "${@:2}"; }  # each call starts from a clean tree
 
 out=$(echo "Outcome: x" | ds ok run "$W/repo"); code=$?
 assert_eq 0 "$code" "run: success exits 0"
@@ -67,6 +67,14 @@ rm -f "$W/attached"
 echo "review the plan in docs/plan.md" | ds ok review "$W/repo" >/dev/null
 [ -e "$W/attached" ] && { echo "  FAIL plan review attached a diff"; FAILS=$((FAILS+1)); } || echo "  ok  plan review: no diff attached"
 out=$(echo "focus" | ds ok review "$W/repo" HEAD); assert_contains "$out" 'Findings: none (empty diff' "review: empty diff approves without calling the model"
+
+git -C "$W/repo" checkout -q -- .; git -C "$W/repo" clean -fdq
+echo dirty >> "$W/repo/a.ts"; rm -f "$W/args"
+out=$(echo "Outcome: x" | FAKE_MODE=ok bash "$D" run "$W/repo" 2>&1); code=$?
+assert_eq 2 "$code" "dirty tree: run refused"
+[ -e "$W/args" ] && { echo "  FAIL dirty tree: worker launched"; FAILS=$((FAILS+1)); } || echo "  ok  dirty tree: worker never launched"
+assert_eq dirty "$(tail -1 "$W/repo/a.ts")" "dirty tree: user edits untouched"
+assert_contains "$out" 'commit or stash' "dirty tree: says how to proceed"
 
 assert_exit 2 bash "$D" run /nonexistent
 rm -rf "$W"

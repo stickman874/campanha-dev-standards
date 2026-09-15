@@ -17,6 +17,10 @@ unavailable() {
 }
 case $mode in run) agent=deepseek-worker;; review) agent=deepseek-reviewer;; *) usage;; esac
 [ -n "$repo" ] && git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || usage
+# a clean tree means every change afterwards is the worker's, so a failed run can be undone without touching the user's edits
+if [ "$mode" = run ] && [ -n "$(git -C "$repo" status --porcelain)" ]; then
+  echo "working tree has uncommitted changes: commit or stash them first, so the worker's edits can be told apart and safely undone" >&2; exit 2
+fi
 
 command -v opencode >/dev/null || unavailable "opencode not installed"
 oc=${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}
