@@ -18,6 +18,7 @@ case $FAKE_MODE in
   limit) echo 'level=ERROR error.error="AI_APICallError: 5-hour usage limit reached. Resets in 39min."' >&2; sleep 30;;
   hang)  sleep 30;;
   fail)  echo "boom" >&2; exit 1;;
+  editfail) echo x > half.txt; echo "Summary: half done"; echo 'error.error="AI_APICallError: 5-hour usage limit reached."' >&2; sleep 30;;
 esac
 EOF
 chmod +x "$W/bin/opencode"
@@ -44,6 +45,12 @@ assert_contains "$out" 'DEEPSEEK_UNAVAILABLE: AI_APICallError: 5-hour usage limi
 out=$(echo "Outcome: x" | DEEPSEEK_TIMEOUT=2 ds hang run "$W/repo"); code=$?
 assert_eq 3 "$code" "hang: exit 3"
 assert_contains "$out" 'timeout after 2s' "hang: timeout reported"
+
+out=$(echo "Outcome: x" | ds editfail run "$W/repo"); code=$?
+assert_eq 3 "$code" "edit then limit: exit 3"
+assert_contains "$out" 'Summary: half done' "edit then limit: partial output handed back"
+assert_contains "$out" 'half.txt' "edit then limit: changed files listed for reconciliation"
+rm -f "$W/repo/half.txt"
 
 out=$(echo "Outcome: x" | ds fail run "$W/repo"); assert_contains "$out" 'DEEPSEEK_UNAVAILABLE: opencode exited 1: boom' "crash: reported as unavailable"
 

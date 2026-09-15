@@ -27,7 +27,7 @@ One outcome per call. Split anything bigger.
 
 ## After it returns
 
-- `DEEPSEEK_UNAVAILABLE` (exit 3): redo the task with a Sonnet subagent. Retry DeepSeek once at the next milestone, never in a loop.
+- `DEEPSEEK_UNAVAILABLE` (exit 3): it may have stopped halfway. Read the partial output and `git status` it prints; keep or revert (`git checkout -- <file>`) those changes, then give the task to a Sonnet subagent with that state described. Retry DeepSeek once at the next milestone, never in a loop.
 - Otherwise read the diff yourself and run the tests or typecheck it lists under `Verify:`. It cannot run them.
 - `Partial: true` or a failing check: one correction round with the exact failure. If it fails again, use a Sonnet subagent or do it yourself.
 - `SensitiveSeen` other than `none`: check that nothing secret landed in files or output. If a real secret was exposed, rotate it and tell the user.

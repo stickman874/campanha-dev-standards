@@ -6,7 +6,15 @@
 set -u
 mode=${1:-}; repo=${2:-}; base=${3:-}
 usage() { echo "usage: deepseek.sh run|review <repo> [base]" >&2; exit 2; }
-unavailable() { echo "DEEPSEEK_UNAVAILABLE: $1"; exit 3; }
+unavailable() {
+  echo "DEEPSEEK_UNAVAILABLE: $1"
+  if [ -n "${launched:-}" ]; then   # it may have edited files before stopping: hand back what we know
+    [ -n "$pid" ] && { kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null; pid=; }
+    echo "--- worker output before it stopped"; tail -n 50 "$tmp/out"
+    [ "$mode" = run ] && { echo "--- git status (it may have changed these: reconcile before redoing the task)"; git -C "$repo" status --short; }
+  fi
+  exit 3
+}
 case $mode in run) agent=deepseek-worker;; review) agent=deepseek-reviewer;; *) usage;; esac
 [ -n "$repo" ] && git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || usage
 
@@ -29,7 +37,7 @@ fi
 # -f takes a list and would swallow a message placed after it, so attachments go last.
 (cd "$repo" && exec opencode run --agent "$agent" --dir "$repo" --auto --print-logs --log-level ERROR \
   "$(cat "$tmp/task.md")" ${files[@]+"${files[@]}"}) > "$tmp/out" 2> "$tmp/err" &
-pid=$!
+pid=$!; launched=1
 
 # opencode retries a usage/rate limit silently and never exits: watch its error log and give up at the first hit.
 LIMIT='usage limit|rate limit|quota|insufficient (balance|credit)|\b40[13]\b'
