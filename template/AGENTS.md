@@ -45,8 +45,8 @@ Write all docs, comments and commit messages in English. Product UI language: se
 
 ## Gates (do not bypass)
 - commit: gitleaks, eslint (incl. design lint).
-- push: typecheck, tests; `scripts/review.sh` (DeepSeek, read-only) when the diff touches auth, API handlers, db or the gates.
-- night shift (server): semgrep, trivy, Socket, review of everything pushed, docs refresh → branch `nightly/<date>` and `docs/dev/reviews/<date>.md`. Read the latest report at session start.
+- push: typecheck, tests related to the changed files (`vitest related`); `scripts/review.sh` (DeepSeek, read-only) when the diff touches auth, API handlers, db or the gates.
+- night shift (server): full test suite, semgrep, trivy, Socket, review of everything pushed, docs refresh → branch `nightly/<date>` and `docs/dev/reviews/<date>.md`. Read the latest report at session start.
 - Humans may force a push with `SKIP_REVIEW=1 git push` (logged in `docs/dev/reviews/skipped.log` — commit that file; reviewed at night). Agents may not.
 
 ## Exceptions

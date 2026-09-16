@@ -24,6 +24,7 @@ step() {   # step <name> <command...>: appends a section; a missing tool is name
   zdr=$(cat docs/dev/reviews/.zdr-confirmed 2>/dev/null || echo 1970-01-01)
   [ $(( ( $(date +%s) - $(date -d "$zdr" +%s 2>/dev/null || echo 0) ) / 86400 )) -le 35 ] || { echo; echo "> WARNING: opencode go zero-data-retention for DeepSeek last confirmed $zdr. Check https://opencode.ai/docs/go/ and write today's date to docs/dev/reviews/.zdr-confirmed."; }
   echo; echo "## Pushed without review"; echo; { cat docs/dev/reviews/skipped.log 2>/dev/null || true; } | grep . || echo "none"
+  step test npm test --if-present -- --run   # pre-push only runs tests related to the changed files; the full suite runs here
   step semgrep semgrep scan --config p/default --error --quiet --metrics=off
   step trivy trivy fs --scanners vuln,secret --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 --quiet --skip-dirs node_modules --skip-files ".env*,**/.env*" .
   step socket npx --yes socket@1 scan create .

@@ -9,11 +9,13 @@ pre-commit:
       run: npx eslint {staged_files}
 
 pre-push:
+  parallel: true
   commands:
     typecheck:
       run: npx tsc --noEmit
-    test:
-      run: npm test --if-present -- --run
+    test:   # only tests related to what's being pushed; the full suite runs in the night shift
+      glob: "*.{ts,tsx,js,jsx}"
+      run: npx vitest related --run {push_files}
     review:   # sensitive paths only; routine diffs are reviewed by the night shift. SKIP_REVIEW=1 git push to force (humans only)
       use_stdin: true
       run: bash scripts/review.sh
