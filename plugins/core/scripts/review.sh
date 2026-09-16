@@ -45,15 +45,8 @@ while read -r from to; do
     echo "review: routine diff $from..$to, skipped (the night shift reviews it; bash scripts/review.sh $from reviews now)"; continue; fi
   [ -f "$runner" ] || { echo "review: opencode.sh not found (install the core plugin or set OPENCODE_SH)" >&2; exit 1; }
   start=$(date +%s)
-  CAP=100000   # the whole prompt (this + file list + instructions) is passed as a single argv to opencode, capped well under the kernel's 131072-byte MAX_ARG_STRLEN
-  full=$(git diff "$from" "$to" --)
-  size=$(printf '%s' "$full" | wc -c)
-  body=$({ printf '%s' "$full" 2>/dev/null; } | head -c "$CAP")   # printf may get EPIPE from head: silence it
+  body=$(git diff "$from" "$to" --)
   note=
-  if [ "$size" -gt "$CAP" ]; then
-    note=$'\n'"(diff truncated at $CAP of $size bytes; treat this range as NOT fully reviewed and return verdict block unless you can read the listed files with your tools)"
-    echo "review: diff truncated ($size bytes) for $from..$to" >&2
-  fi
   out=$(OPENCODE_TIMEOUT=${REVIEW_TIMEOUT:-300} bash "$runner" "$PWD" reviewer <<EOF
 Adversarial code review of the change between commits $from and $to in this repository.
 Files changed:

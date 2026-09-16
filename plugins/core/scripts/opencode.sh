@@ -32,7 +32,7 @@ LIMIT='usage limit|rate limit|quota|insufficient (balance|credit)|FreeUsageLimit
 model=(); [ -n "${OPENCODE_MODEL:-}" ] && model=(-m "$OPENCODE_MODEL")
 export OPENCODE_EXPERIMENTAL_LSP_TOOL=true
 timeout=${OPENCODE_TIMEOUT:-600}; end=$(( $(date +%s) + timeout ))
-(cd "$repo" && exec ${SETSID:-} opencode run --format json --agent "$agent" --dir "$repo" --auto ${model[@]+"${model[@]}"} --print-logs --log-level ERROR "$(cat "$tmp/prompt")") > "$events" 2> "$tmp/err" &
+(cd "$repo" && exec ${SETSID:-} opencode run --format json --agent "$agent" --dir "$repo" --auto ${model[@]+"${model[@]}"} --print-logs --log-level ERROR -f "$tmp/prompt" "see attached file for the task") > "$events" 2> "$tmp/err" &
 pid=$!
 while kill -0 "$pid" 2>/dev/null; do
   grep -qiE "$LIMIT" "$tmp/err" && unavailable "$(reason "$tmp/err")"
