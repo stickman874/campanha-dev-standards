@@ -46,7 +46,9 @@ assert_eq 3 "$code" "stubborn (ignores TERM): exit 3"
 [ $(( $(date +%s) - start )) -lt 12 ] && echo "  ok  kills stubborn process within budget" || { echo "  FAIL waited too long for stubborn kill"; FAILS=$((FAILS+1)); }
 out=$(echo x | run fail "$W/repo" worker 2>/dev/null); assert_contains "$out" 'DEEPSEEK_UNAVAILABLE: opencode exited 1' "crash reported"
 out=$(echo x | run ok "$W/repo" nosuch 2>/dev/null); code=$?; assert_eq 3 "$code" "missing agent file: exit 3"; assert_contains "$out" 'nosuch.md missing' "names the agent file"
-clean_path=$(IFS=:; for d in $PATH; do [ "$d" = "$W/bin" ] && continue; printf '%s:' "$d"; done)
+# simulate "opencode not installed": drop the fake bin dir AND any dir that really has opencode
+# (a real install elsewhere on PATH would otherwise run and the case would never be exercised)
+clean_path=$(IFS=:; for d in $PATH; do [ "$d" = "$W/bin" ] && continue; [ -x "$d/opencode" ] || [ -x "$d/opencode.exe" ] || [ -x "$d/opencode.cmd" ] && continue; printf '%s:' "$d"; done)
 out=$(echo x | PATH="${clean_path%:}" run ok "$W/repo" worker 2>/dev/null); code=$?; assert_eq 3 "$code" "missing opencode: exit 3"
 assert_exit 2 bash "$S" /nonexistent worker
 printf '' | run ok "$W/repo" worker >/dev/null 2>&1; assert_eq 2 "$?" "empty prompt: exit 2"
