@@ -26,5 +26,5 @@ Source of truth for visual decisions; every screen uses only what is listed here
 ## Rules
 
 - No inline colours or sizes; use tokens and canonical components only.
-- Missing a piece? Add it here and in the shared components folder, never inline.
+- Missing a piece? shadcn (Base UI) first, then ReUI (MCP + `reui` skill), then your own shared component — in that order. Register it here, never inline.
 - Run impeccable to regenerate this file after design changes.

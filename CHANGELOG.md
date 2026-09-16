@@ -4,6 +4,11 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-16
+
+### Added
+- UI component sourcing rule: shadcn standard (Base UI) first; ReUI via its MCP (`https://mcp.reui.io/api/mcp`) + `reui` skill only when shadcn has nothing that fits; never hand-roll what a registry ships. In `template/AGENTS.md`, `template/.claude/rules/frontend.md`, `template/DESIGN.md`, new `template/docs/dev/how-to/ui-components.md`. Global install: `REUI_GLOBAL=1 curl -fsSL https://mcp.reui.io/install | node -` (Claude + Codex), opencode by hand (README).
+
 ### Fixed
 
 - `nightly.sh`: review timeout 1500 s at night (a first run over dozens of commits needs it); the last-reviewed sha advances once the report is pushed even when a step failed, so a giant first range cannot wedge the job; no more EPIPE noise from `printf | head`.

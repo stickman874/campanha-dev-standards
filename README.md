@@ -45,6 +45,7 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
 - `doc-keeper` agent (mode `diff` on request or when a feature ships, `bootstrap` on adopt, `consolidate` weekly) keeps `docs/dev`, `docs/product` and CHANGELOG current.
 - `core:handoff` prints a prompt to paste into the next session (any tool).
 - Official plugins enabled by the settings template: superpowers, security-guidance, commit-commands, typescript-lsp, playwright, codex, impeccable.
+- UI components: shadcn standard (Base UI) first, ReUI (MCP + `reui` skill, installed globally with `REUI_GLOBAL=1 curl -fsSL https://mcp.reui.io/install | node -`) only when shadcn has nothing that fits. Rule in `template/AGENTS.md`, `template/.claude/rules/frontend.md`, how-to in `template/docs/dev/how-to/ui-components.md`.
 
 ## Develop the plugin
 

@@ -7,6 +7,6 @@ paths:
 ---
 - Read `DESIGN.md` before building any screen.
 - Colours, spacing, radius and type sizes come from `globals.css` tokens only. No hex, no `text-[13px]`, no inline styles. The pre-commit eslint step fails on these (see docs/dev/how-to/design-lint.md).
-- Tables, panels, forms, KPI rows, toolbars: use the canonical components listed in `DESIGN.md`. If one is missing, create it in the shared components folder and register it in `DESIGN.md`; never build a one-off in the screen.
+- Tables, panels, forms, KPI rows, toolbars: use the canonical components listed in `DESIGN.md`. If one is missing, look for it in this order before writing any code: (1) shadcn standard (Base UI) — `npx shadcn@latest search`, install via `scripts/ui-add.sh`; (2) ReUI — MCP `search` → `get_component` → `get_examples` → install via `scripts/ui-add.sh @reui/<name>`, then adapt by reuse (real data, project tokens, no invented props); (3) only then a shared component of your own. Register the result in `DESIGN.md`; never build a one-off in the screen. Details: docs/dev/how-to/ui-components.md.
 - Product UI strings in the product language (see `docs/product/glossary.md`); code in English.
 - Every user-visible change → `docs/product/features/<feature>.md` (doc-keeper does this on push; verify).

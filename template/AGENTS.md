@@ -36,6 +36,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 - Files kebab-case, components PascalCase, constants UPPER_SNAKE, database snake_case.
 - TypeScript everywhere in `src/`. No state-management library; React hooks only.
 - Design: `DESIGN.md` is the source of truth. Use tokens from `globals.css` and canonical components. Never inline colours, sizes or ad-hoc tables; add missing pieces globally. The pre-commit eslint step fails otherwise (docs/dev/how-to/design-lint.md).
+- UI components: shadcn standard (Base UI) first; only when no shadcn primitive or block covers the need, ReUI via its MCP + `reui` skill (see docs/dev/how-to/ui-components.md). Never hand-roll what either registry ships (tables → ReUI `data-grid`, boards → `kanban`). Install through `scripts/ui-add.sh`, never by copying source.
 - Tests are mandatory; pre-push runs them. New behaviour ships with a test.
 - Secrets: never in the repo; only `.env.example`. Never read `.env*` files.
 - Database: migrations are never edited once applied. Never `db push`/`reset` against a shared database.
