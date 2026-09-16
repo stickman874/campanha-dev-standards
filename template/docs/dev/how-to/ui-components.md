@@ -17,8 +17,9 @@ registry already ships.
    - Install: `bash scripts/ui-add.sh @reui/<name>`.
    - Adapt by reuse: real data, project tokens from `globals.css`, no invented
      props, no restyling. `get_audit_checklist()` before declaring done.
-   - Free account covers components + examples. Premium blocks need a Pro
-     licence: ask the owner before installing one.
+   - Free account covers the 22 components and every `c-*` example (the
+     "data grid with CRUD in frame container" pattern is an example, free).
+     Only full-page *blocks* and Motion Icons are paid: ask before installing one.
 3. **Your own shared component**, in the shared components folder, registered
    in `DESIGN.md`. Never a one-off inside a screen.
 
