@@ -8,5 +8,6 @@ for f in .claude-plugin/marketplace.json plugins/core/.claude-plugin/plugin.json
 assert_eq 2 "$(jq '.hooks.PreToolUse[0].hooks | length' plugins/core/hooks/hooks.json)" "two Bash hooks"
 assert_eq ./plugins/core "$(jq -r '.plugins[0].source' .claude-plugin/marketplace.json)" "plugin source"
 [ "$(wc -l < template/AGENTS.md)" -le 150 ] && echo "  ok  AGENTS.md <= 150 lines" || { echo "  FAIL AGENTS.md too long"; FAILS=$((FAILS+1)); }
-assert_exit 0 python3 -c 'import yaml; yaml.safe_load(open("copier.yml"))'
+PY=python3; command -v python3 >/dev/null 2>&1 && python3 -c '' >/dev/null 2>&1 || PY=python   # Windows ships only `python` (python3 may be a Store-alias stub)
+assert_exit 0 "$PY" -c 'import yaml; yaml.safe_load(open("copier.yml"))'
 finish

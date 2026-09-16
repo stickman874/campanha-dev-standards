@@ -49,6 +49,8 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
 
 ## Develop the plugin
 
+Needs `jq` and `python` (or `python3`) with PyYAML on `PATH` — `mise use -g jq python` or your OS package manager. Windows: run tests through Git Bash (`bash tests/run.sh`); the hooks and scripts are plain POSIX `sh`/`bash` and run unchanged there, in WSL, in Linux and in macOS.
+
     claude --plugin-dir ./plugins/core
     bash tests/run.sh
 
