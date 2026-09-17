@@ -5,7 +5,7 @@ cmp -s "$S" plugins/core/scripts/review.sh && echo "  ok  template and plugin re
 W=$(mktemp -d); mkdir -p "$W/bin"
 cat > "$W/bin/opencode" <<'EOF'
 #!/usr/bin/env bash
-printf '%s\n' "$@" > "$FAKE_ARGS"
+printf '%s\n' "$@" > "$FAKE_ARGS"; cat "${@: -1}" >> "$FAKE_ARGS"   # the prompt arrives as the -f file, last arg
 case ${FAKE_MODE:-approve} in
   approve)  j='{"verdict":"approve","findings":[]}';;
   block)    j='{"verdict":"block","findings":[{"severity":"high","file":"src/app/api/r.ts","line":3,"what":"no auth check","fix":"call requireUser()"}]}';;
@@ -43,7 +43,7 @@ out=$(stdin | FAKE_MODE=prose bash "$S" 2>&1); code=$?; assert_eq 0 "$code" "JSO
 out=$(stdin | FAKE_MODE=junk bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "no JSON = block"; assert_contains "$out" 'no valid JSON' "explains"
 out=$(FAKE_MODE=pretty bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "pretty-printed multi-line JSON accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from pretty JSON printed"
 out=$(FAKE_MODE=fenced bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "fenced multi-line JSON accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from fenced JSON printed"
-out=$(stdin | FAKE_MODE=limit bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "reviewer unavailable = block"; assert_contains "$out" 'SKIP_REVIEW=1' "tells the human how to force"
+out=$(stdin | FAKE_MODE=limit bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "reviewer unavailable = block"; assert_contains "$out" 'SKIP_REVIEW=1' "tells the human how to force"; assert_contains "$out" 'unavailable (DEEPSEEK_UNAVAILABLE: .*usage limit' "blocking line carries the reason"
 
 # runner discovery: real cache layout is .../core/<version>/scripts/opencode.sh; the newest installed version wins over an older stub
 W2=$(mktemp -d)
@@ -67,13 +67,8 @@ git checkout -q base; git checkout -q -b same; rm -f "$FAKE_ARGS"; bash "$S" bas
 assert_eq 0 "$code" "empty diff passes"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL empty diff called opencode"; FAILS=$((FAILS+1)); } || echo "  ok  empty diff skips opencode"
 git checkout -q main
 head -c 130000 /dev/zero | tr '\0' a > big.ts; git add -A; c big
-# review.sh's diff cap (CAP=100000) keeps the whole prompt (body + note + file list +
-# instructions) well under the kernel's single-argv limit (MAX_ARG_STRLEN, 131072 bytes)
-# that opencode.sh hits when it turns the prompt into a CLI argument for the real
-# `opencode` binary, so the call reaches the fake reviewer normally: FAKE_MODE=approve
-# means exit 0, and the fake's captured prompt (and stderr) both show the truncation.
+# the prompt goes to opencode as a file, so a diff larger than one argv (MAX_ARG_STRLEN, 131072 bytes) arrives whole
 rm -f "$FAKE_ARGS"; out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?
-assert_eq 0 "$code" "big diff, truncated but still reviewed and approved"
-assert_contains "$out" 'diff truncated ([0-9]\+ bytes)' "stderr flags the truncation, with the real size"
-assert_contains "$(cat "$FAKE_ARGS")" 'diff truncated' "prompt flags the truncation"
+assert_eq 0 "$code" "big diff reviewed and approved"
+[ "$(wc -c < "$FAKE_ARGS")" -gt 130000 ] && echo "  ok  big diff reaches the reviewer whole" || { echo "  FAIL big diff cut short"; FAILS=$((FAILS+1)); }
 cd - >/dev/null; rm -rf "$W"; finish

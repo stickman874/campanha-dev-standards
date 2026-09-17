@@ -5,7 +5,7 @@
 # commits to branch nightly/<date> and pushes only that branch. Report: docs/dev/reviews/<date>.md.
 # Exit 0 every step ran (findings do not fail the run) · 1 a step could not run (tool missing, reviewer unavailable, push failed) · 2 usage.
 set -u
-CAP=100000   # like review.sh: the docs-agent prompt is one argv to opencode.sh, capped well under the kernel's 131072-byte MAX_ARG_STRLEN
+CAP=100000   # keeps the docs-agent prompt within its token budget; the agent reads the files itself
 repo=${1:-}; git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { echo "usage: nightly.sh <repo>" >&2; exit 2; }
 here=$(cd "$(dirname "$0")" && pwd); export OPENCODE_SH=${OPENCODE_SH:-$here/opencode.sh}
 cd "$repo" || exit 2

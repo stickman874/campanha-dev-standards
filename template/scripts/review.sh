@@ -46,7 +46,6 @@ while read -r from to; do
   [ -f "$runner" ] || { echo "review: opencode.sh not found (install the core plugin or set OPENCODE_SH)" >&2; exit 1; }
   start=$(date +%s)
   body=$(git diff "$from" "$to" --)
-  note=
   out=$(OPENCODE_TIMEOUT=${REVIEW_TIMEOUT:-300} bash "$runner" "$PWD" reviewer <<EOF
 Adversarial code review of the change between commits $from and $to in this repository.
 Files changed:
@@ -57,11 +56,12 @@ Output: one JSON object and nothing else, no code fences:
 {"verdict":"approve"|"block","findings":[{"severity":"high"|"medium"|"low","file":"path","line":123,"what":"...","fix":"..."}]}
 Verdict is block if any finding is high.
 Diff:
-$body$note
+$body
 EOF
   ); code=$?
   echo "review: range=$from..$to secs=$(( $(date +%s) - start ))"
-  [ "$code" -eq 0 ] || { echo "$out"; echo "review: reviewer unavailable, push blocked. Fix the cause, or force it yourself: SKIP_REVIEW=1 git push" >&2; rc=1; continue; }
+  [ "$code" -eq 0 ] || { echo "$out"; echo "review: reviewer unavailable ($(printf '%s
+' "$out" | head -1 | cut -c1-200)), push blocked. Fix the cause, or force it yourself: SKIP_REVIEW=1 git push" >&2; rc=1; continue; }
   json=$(printf '%s\n' "$out" | tr -d '\r' | sed '/^```/d' | jq -c . 2>/dev/null | head -1)
   [ -n "$json" ] || json=$(printf '%s\n' "$out" | tr -d '\r' | sed -n 's/^[^{]*\({.*}\)[^}]*$/\1/p; /^{/p' | head -1 | jq -c . 2>/dev/null)   # ponytail: the JSON object on the first line that holds one, prose around it ignored
   [ "$(printf '%s\n' "$json" | wc -l)" -eq 1 ] || json=

@@ -10,7 +10,7 @@ printf '%s\n' "$@" > "$FAKE_ARGS"
 ev() { printf '%s\n' "$1"; }
 tool() { ev '{"type":"tool_use","part":{"tool":"edit","state":{"status":"completed"}}}'; }
 case $FAKE_MODE in
-  ok)       tool; echo x > touched.txt; ev '{"type":"text","part":{"text":"Summary: done\nFiles:\n- touched.txt — created\n- ghost.ts — edited\n- a.t — untouched\nVerify: npm test\nPartial: false\nSensitiveSeen: none"}}';;
+  ok)       tool; echo x > touched.txt; ev '{"type":"text","part":{"text":"Summary: done\nFiles:\n- `touched.txt` — created\n- ghost.ts — edited\n- a.t — untouched\nVerify: npm test\nPartial: false\nSensitiveSeen: none"}}';;
   nothing)  tool; tool; tool; ev '{"type":"text","part":{"text":"Summary: done\nFiles:\n- a.ts — edited"}}';;
   read)     tool; tool; ev '{"type":"text","part":{"text":"Summary: nothing to change"}}';;
   limit)    echo x > half.txt; echo 'level=ERROR error.error="AI_APICallError: usage limit"' >&2; sleep 30;;
