@@ -4,10 +4,14 @@
 #   opencode.sh <repo> <agent> < prompt
 # Env: OPENCODE_MODEL (adds -m provider/model), OPENCODE_TIMEOUT (seconds, 600), OPENCODE_EVENTS (save the raw JSON events here).
 # stdout: the agent's final text. stderr: diagnostics, then "opencode: tools=N tokens=T cost=C".
+# Backend: `backend: claude` in the repo's .copier-answers.yml (or CAMPANHA_BACKEND=claude) hands the call to claude.sh, same contract.
 # Exit 0 done · 3 "DEEPSEEK_UNAVAILABLE: <why>" (opencode/agent missing, usage or auth error, error event, timeout, crash) · 2 bad usage.
 set -u
 repo=${1:-}; agent=${2:-}
 [ -n "$agent" ] && git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { echo "usage: opencode.sh <repo> <agent> < prompt" >&2; exit 2; }
+backend=${CAMPANHA_BACKEND:-$(sed -n 's/^backend: *//p' "$repo/.copier-answers.yml" 2>/dev/null | tr -d '
+"')}
+[ "$backend" = claude ] && exec bash "$(dirname "$0")/claude.sh" "$@"
 tmp=$(mktemp -d); pid=
 SETSID=$(command -v setsid || true)
 stop() {

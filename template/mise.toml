@@ -1,5 +1,5 @@
 # Tool versions for the campanha-dev-standards gates. `mise install` once per clone; `mise upgrade` to bump.
-# opencode is not installable by mise: curl -fsSL https://opencode.ai/install | bash, then opencode auth login (opencode go).
+{% if backend == 'opencode' %}# opencode is not installable by mise: curl -fsSL https://opencode.ai/install | bash, then opencode auth login (opencode go).{% else %}# Claude-only backend: workers, review and docs run through `claude -p` on the Claude Code login; no opencode.{% endif %}
 [tools]
 node = "24"
 jq = "latest"

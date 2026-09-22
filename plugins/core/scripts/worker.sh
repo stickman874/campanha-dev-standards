@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# DeepSeek worker through the project's no-shell `worker` opencode agent (.opencode/agents/worker.md).
+# Worker through the project's no-shell `worker` agent: DeepSeek on opencode (.opencode/agents/) or Haiku on the Claude backend (.claude/agents/).
+# Claude-only repos call the worker as a subagent instead (core:worker skill); this script still works there through claude.sh.
 #   worker.sh <repo> < task     the worker edits files and never commits.
 # stdout: its report, "--- git status", and "--- claimed but unchanged" (paths under Files: that git does not see).
-# Exit 0 done · 3 DEEPSEEK_UNAVAILABLE (caller falls back to a Sonnet subagent) · 4 wrote nothing (≥3 tool calls, no change) · 2 bad usage.
+# Exit 0 done · 3 DEEPSEEK_UNAVAILABLE / CLAUDE_UNAVAILABLE (caller falls back to a Sonnet subagent) · 4 wrote nothing (≥3 tool calls, no change) · 2 bad usage.
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
 repo=${1:-}; git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { echo "usage: worker.sh <repo> < task" >&2; exit 2; }
@@ -13,7 +14,7 @@ echo "$out"
 changed=$(git -C "$repo" status --porcelain)
 echo "--- git status"; echo "$changed"
 [ "$code" -eq 0 ] || exit "$code"
-tools=$(jq -c 'select(.type=="tool_use")' "$events" 2>/dev/null | wc -l)
+tools=$(jq -c 'select(.type=="tool_use"), (select(.type=="assistant") | .message.content[]? | select(.type=="tool_use"))' "$events" 2>/dev/null | wc -l)   # opencode events, then Claude stream-json
 [ -z "$changed" ] && [ "$tools" -ge 3 ] && { echo "worker: wrote nothing ($tools tool calls, no file changed)" >&2; exit 4; }
 # ponytail: claims are the "- path — why" lines under Files:; anything git did not see is listed and the caller decides
 # a worker with nothing to report writes "- (none)" / "- (nenhum)" under Files:; that is not a claim

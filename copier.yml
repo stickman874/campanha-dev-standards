@@ -13,6 +13,9 @@ _skip_if_exists:
   - public/.well-known/security.txt
   - .claude/settings.json
   - .claude/rules/**
+_exclude:
+  - "{% if backend == 'claude' %}.opencode{% endif %}"
+  - "{% if backend == 'opencode' %}.claude/agents{% endif %}"
 _tasks:
   - command: "mise install && lefthook install && echo 'adopted: run the doc-keeper agent to migrate existing docs'"
     when: "{{ _copier_operation == 'copy' }}"
@@ -25,3 +28,8 @@ tenant:
   help: "single = one organisation uses it; multi = several client organisations share it (row-level isolation required)"
   choices: [single, multi]
   default: single
+backend:
+  type: str
+  help: "opencode = workers, review and docs on DeepSeek via opencode go ($10/month per dev) + optional Codex; claude = Claude Code only (Haiku workers, Sonnet review and rescue, on the Claude subscription)"
+  choices: [opencode, claude]
+  default: opencode

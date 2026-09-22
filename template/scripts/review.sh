@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Adversarial review of pushed ranges by the project's read-only `reviewer` opencode agent (DeepSeek on opencode go).
+# Adversarial review of pushed ranges by the project's read-only `reviewer` agent (DeepSeek on opencode go, or Sonnet on the Claude backend).
 #   review.sh                  ranges from git's pre-push stdin (lefthook use_stdin) — only ranges touching sensitive paths; routine ones are skipped
 #   review.sh <from> [<to>]    explicit range (to = HEAD) — always reviewed
 #   review.sh --all            stdin ranges, every range reviewed (night shift)

@@ -4,6 +4,9 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+### Added
+- Claude-only backend: copier question `backend` (`opencode` default, or `claude`). On `claude` the repo gets `.claude/agents/{worker,rescuer,reviewer,docs}.md` (worker and docs on Haiku, reviewer and rescuer on Sonnet, no shell) instead of `.opencode/`, no Codex plugin, and orchestrator `opus`. `core:worker` and `core:rescue` call `worker` / `rescuer` as native subagents. Review and night shift run outside a session, so they use the new runner `scripts/claude.sh` (`claude -p --agent`, no MCP, same contract as `opencode.sh`, exit 3 `CLAUDE_UNAVAILABLE`); `opencode.sh` hands over to it when `.copier-answers.yml` says `backend: claude` (or `CAMPANHA_BACKEND=claude`).
+
 ## [0.3.2] - 2026-09-22
 
 ### Added
