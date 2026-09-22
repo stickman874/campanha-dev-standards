@@ -14,6 +14,8 @@ description: Use to hand a well-scoped edit or code search to DeepSeek V4.1 Flas
 
 Bash timeout 660000 ms. Commit or stash your own changes first (it refuses a dirty tree). The quoted heredoc keeps backticks and `$(...)` from running in your shell. One outcome per call.
 
+Parallel workers: one `git worktree add ../<repo>-<task> -b <task>` per task, pass each worktree path as the repo. Each starts clean, so the dirty-tree rule holds and each diff stays attributable. Merge or cherry-pick when they return, then `git worktree remove`.
+
 After it returns:
 - Exit 3 `DEEPSEEK_UNAVAILABLE`: read the partial output and `git status`. Every change is the worker's: keep or revert (`git checkout -- <file>`, `git clean -f <file>`). Give the task to a Sonnet subagent (`Agent` tool, `model: sonnet`) with that state described. Retry DeepSeek once at the next milestone, never in a loop.
 - Exit 4 "wrote nothing": the worker read but did not edit. Sharpen `Files:` and `Outcome:` and call once more; then Sonnet.

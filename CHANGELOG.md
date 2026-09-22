@@ -4,6 +4,11 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-09-22
+
+### Added
+- `core:worker`: parallel workers via one `git worktree` per task; the clean-tree rule holds per worktree, so each diff stays attributable.
+
 ## [0.3.1] - 2026-09-16
 
 ### Added
