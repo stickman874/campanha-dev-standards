@@ -16,7 +16,7 @@ Backend comes from the repo: `backend: claude` in `.copier-answers.yml` → sect
 
 Bash timeout 660000 ms. Commit or stash your own changes first (it refuses a dirty tree). The quoted heredoc keeps backticks and `$(...)` from running in your shell. One outcome per call.
 
-Parallel workers: one `git worktree add ../<repo>-<task> -b <task>` per task, pass each worktree path as the repo. Each starts clean, so the dirty-tree rule holds and each diff stays attributable. Merge or cherry-pick when they return, then `git worktree remove`.
+Parallel workers: one `git worktree add ../<repo>-<task> -b <task>` per task, pass each worktree path as the repo. Each starts clean, so the dirty-tree rule holds and each diff stays attributable. Workers never commit: when one returns, check it and commit inside its worktree (`git -C <worktree> add -A && git -C <worktree> commit`), then cherry-pick onto your branch and `git worktree remove`.
 
 After it returns:
 - Exit 3 `DEEPSEEK_UNAVAILABLE` / `CLAUDE_UNAVAILABLE`: read the partial output and `git status`. Every change is the worker's: keep or revert (`git checkout -- <file>`, `git clean -f <file>`). Give the task to a Sonnet subagent (`Agent` tool, `model: sonnet`) with that state described. Retry the worker once at the next milestone, never in a loop.
@@ -27,7 +27,7 @@ After it returns:
 
 ## Claude-only repo
 
-`Agent` tool, `subagent_type: "worker"` (project agent `.claude/agents/worker.md`: Haiku, no shell, no web), prompt = the same `Outcome / Files / Keep / Config` brief. Commit or stash your own changes first, so every change in `git status` afterwards is the worker's. Parallel workers: one call per task in the same message, each with `isolation: "worktree"`; merge or cherry-pick when they return.
+`Agent` tool, `subagent_type: "worker"` (project agent `.claude/agents/worker.md`: Haiku, no shell, no web), prompt = the same `Outcome / Files / Keep / Config` brief. Commit or stash your own changes first, so every change in `git status` afterwards is the worker's. Parallel workers: one call per task in the same message, each with `isolation: "worktree"`; workers never commit, so when one returns, check it and commit inside its worktree (`.claude/worktrees/<name>`), then cherry-pick onto your branch and remove the worktree.
 
 After it returns (the checks the opencode script makes, made by you):
 - Compare its `Files:` lines with `git status --short`: a file it claims but git does not show was not changed; treat the claim as false. It read but changed nothing → sharpen `Files:` and `Outcome:` and call once more; then Sonnet.

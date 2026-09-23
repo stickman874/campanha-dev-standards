@@ -17,6 +17,8 @@ _exclude:
   - "{% if backend == 'claude' %}.opencode{% endif %}"
   - "{% if backend == 'opencode' %}.claude/agents{% endif %}"
 _tasks:
+  # parallel subagents (isolation: worktree) create .claude/worktrees/; append, never overwrite the repo's own .gitignore
+  - command: "grep -qxF '.claude/worktrees/' .gitignore 2>/dev/null || echo '.claude/worktrees/' >> .gitignore"
   - command: "mise install && lefthook install && echo 'adopted: run the doc-keeper agent to migrate existing docs'"
     when: "{{ _copier_operation == 'copy' }}"
 project_name:
