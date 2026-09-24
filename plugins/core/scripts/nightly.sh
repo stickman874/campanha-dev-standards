@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Night shift for one adopted repo checkout (runs on the server from a systemd timer; see deploy/nightly/).
-#   nightly.sh <repo>   needs: git with push rights, opencode login (claude login on the Claude backend; codex login + claude login on the Codex backend), semgrep, trivy, npx (Socket), jq.
+#   nightly.sh <repo>   needs: git with push rights, opencode login (dedicated opencode go account), semgrep, trivy, npx (Socket), jq.
 # Reviews everything pushed to origin/main since the last run, runs the scanners, refreshes docs with the `docs` agent,
 # commits to branch nightly/<date> and pushes only that branch. Report: docs/dev/reviews/<date>.md.
 # Exit 0 every step ran (findings do not fail the run) · 1 a step could not run (tool missing, reviewer unavailable, push failed) · 2 usage.
 set -u
 CAP=100000   # keeps the docs-agent prompt within its token budget; the agent reads the files itself
 repo=${1:-}; git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { echo "usage: nightly.sh <repo>" >&2; exit 2; }
-here=$(cd "$(dirname "$0")" && pwd); export OPENCODE_SH=${OPENCODE_SH:-$here/opencode.sh}
+here=$(cd "$(dirname "$0")" && pwd)
 cd "$repo" || exit 2
 day=$(date -u +%F); branch=nightly/$day; report=docs/dev/reviews/$day.md; state=$(git rev-parse --git-dir)/nightly-last
 git fetch -q origin main && git checkout -q -B "$branch" origin/main && git clean -fdq docs -e 'docs/dev/reviews/skipped.log' -e 'docs/dev/reviews/.zdr-confirmed' || { echo "nightly: fetch or checkout failed" >&2; exit 1; }
+[ -n "${OPENCODE_SH:-}" ] || { if [ -f scripts/opencode.sh ]; then OPENCODE_SH=$PWD/scripts/opencode.sh; else OPENCODE_SH=$here/opencode.sh; fi; }
+export OPENCODE_SH   # review.sh reads it too
 to=$(git rev-parse origin/main); from=$(cat "$state" 2>/dev/null || git rev-parse --verify -q "origin/main~20" 2>/dev/null || echo 4b825dc642cb6eb9a060e54bf8d69288fbee4904)
 [ "$from" != "$to" ] || { echo "nightly: no new commits since $from"; exit 0; }
 mkdir -p docs/dev/reviews; rc=0
@@ -21,10 +23,8 @@ step() {   # step <name> <command...>: appends a section; a missing tool is name
 }
 {
   echo "# Night shift $day"; echo; echo "Range: \`$from..$to\` ($(git rev-list --count "$from..$to" 2>/dev/null || echo '?') commits)"
-  if ! grep -qE '^backend: *(claude|codex)' .copier-answers.yml 2>/dev/null; then
-    zdr=$(cat docs/dev/reviews/.zdr-confirmed 2>/dev/null || echo 1970-01-01)
-    [ $(( ( $(date +%s) - $(date -d "$zdr" +%s 2>/dev/null || echo 0) ) / 86400 )) -le 35 ] || { echo; echo "> WARNING: opencode go zero-data-retention for DeepSeek last confirmed $zdr. Check https://opencode.ai/docs/go/ and write today's date to docs/dev/reviews/.zdr-confirmed."; }
-  fi
+  zdr=$(cat docs/dev/reviews/.zdr-confirmed 2>/dev/null || echo 1970-01-01)
+  [ $(( ( $(date +%s) - $(date -d "$zdr" +%s 2>/dev/null || echo 0) ) / 86400 )) -le 35 ] || { echo; echo "> WARNING: opencode go zero-data-retention for DeepSeek last confirmed $zdr. Check https://opencode.ai/docs/go/ and write today's date to docs/dev/reviews/.zdr-confirmed."; }
   echo; echo "## Pushed without review"; echo; { cat docs/dev/reviews/skipped.log 2>/dev/null || true; } | grep . || echo "none"
   step test npm test --if-present -- --run   # pre-push only runs tests related to the changed files; the full suite runs here
   step semgrep semgrep scan --config p/default --error --quiet --metrics=off

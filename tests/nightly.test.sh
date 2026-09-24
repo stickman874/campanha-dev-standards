@@ -17,6 +17,7 @@ chmod +x "$W/bin/opencode"; export PATH="$W/bin:$PATH"
 git init -q --bare "$W/origin"; git clone -q "$W/origin" "$W/repo" 2>/dev/null; cd "$W/repo"; git checkout -q -b main
 mkdir -p .opencode/agents docs/dev/reviews src scripts; cp "$OLDPWD"/template/.opencode/agents/{reviewer,docs}.md .opencode/agents/; cp "$OLDPWD"/template/scripts/review.sh scripts/
 echo "# arch" > docs/dev/architecture.md; touch docs/dev/reviews/.gitkeep; echo a > src/a.ts
+printf 'backend: claude\n' > .copier-answers.yml
 git add -A; git -c user.name=t -c user.email=t@t commit -qm init; git push -q origin main
 export OPENCODE_SH=$OLDPWD/plugins/core/scripts/opencode.sh GIT_AUTHOR_NAME=n GIT_AUTHOR_EMAIL=n@n GIT_COMMITTER_NAME=n GIT_COMMITTER_EMAIL=n@n
 day=$(date -u +%F)
@@ -44,6 +45,16 @@ printf '#!/usr/bin/env bash\necho "semgrep: 1 finding"\nexit 1\n' > "$W/bin/semg
 git checkout -q main; echo d >> src/a.ts; git commit -qam d; git push -q origin main
 out=$(bash "$S" "$W/repo" 2>&1); code=$?; assert_eq 0 "$code" "run with semgrep back exits 0"
 [ -s docs/dev/reviews/skipped.log ] && { echo "  FAIL skipped.log not truncated after a successful run"; FAILS=$((FAILS+1)); } || echo "  ok  skipped.log truncated after a successful run"
+
+# runner: plugin's own when the repo predates 0.5.0, the repo's scripts/opencode.sh once it ships one
+git checkout -q main; echo f >> src/a.ts; git commit -qam f; git push -q origin main
+out=$(env -u OPENCODE_SH bash "$S" "$W/repo" 2>&1); code=$?
+assert_eq 0 "$code" "no repo runner: falls back to the plugin's"
+export MARK="$W/mark" REAL="$OLDPWD/plugins/core/scripts/opencode.sh"
+git checkout -q main; printf '#!/usr/bin/env bash\ntouch "$MARK"; exec bash "$REAL" "$@"\n' > scripts/opencode.sh; echo g >> src/a.ts; git add -A; git commit -qm g; git push -q origin main
+rm -f "$MARK"; out=$(env -u OPENCODE_SH bash "$S" "$W/repo" 2>&1); code=$?
+assert_eq 0 "$code" "repo runner run exits 0"
+[ -e "$MARK" ] && echo "  ok  repo's scripts/opencode.sh used" || { echo "  FAIL repo runner not used"; FAILS=$((FAILS+1)); }
 
 git checkout -q main; echo e >> src/a.ts; git rm -q scripts/review.sh; git commit -qam 'drop review.sh'; git push -q origin main
 out=$(bash "$S" "$W/repo" 2>&1); code=$?
