@@ -20,7 +20,7 @@ git add -A && git -c user.name=t -c user.email=t@t commit -qm "chore: adopt" && 
 
 mkdir -p src && echo x > src/x.ts; git add -A
 git -c user.name=t -c user.email=t@t commit -qm "code"
-[ -f scripts/review.sh ] && [ -f .opencode/agents/reviewer.md ] && [ -f mise.toml ] && echo "  ok  copier rendered template" || { echo "  FAIL template not rendered"; FAILS=$((FAILS+1)); }
+[ -f scripts/review.sh ] && [ -f scripts/opencode.sh ] && [ -f .opencode/agents/reviewer.md ] && [ -f mise.toml ] && echo "  ok  copier rendered template" || { echo "  FAIL template not rendered"; FAILS=$((FAILS+1)); }
 
 cd - >/dev/null; rm -rf "$(dirname "$T")"
 finish

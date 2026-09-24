@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Adversarial review of pushed ranges by the project's read-only `reviewer` agent (DeepSeek on opencode go, or Sonnet on the Claude backend).
+# Adversarial review of pushed ranges by the project's read-only `reviewer` agent (DeepSeek on opencode go, via the opencode.sh next to this file).
 #   review.sh                  ranges from git's pre-push stdin (lefthook use_stdin) — only ranges touching sensitive paths; routine ones are skipped
 #   review.sh <from> [<to>]    explicit range (to = HEAD) — always reviewed
 #   review.sh --all            stdin ranges, every range reviewed (night shift)
@@ -7,16 +7,9 @@
 # SKIP_REVIEW=1 git push (typed by a human, never by an agent): skips and logs the range to docs/dev/reviews/skipped.log; the night shift reviews it.
 set -u
 here=$(cd "$(dirname "$0")" && pwd)
-runner=${OPENCODE_SH:-}
-if [ -z "$runner" ]; then
-  for c in "$here/opencode.sh" "${CLAUDE_PLUGIN_ROOT:-}/scripts/opencode.sh"; do [ -f "$c" ] && { runner=$c; break; }; done
-  if [ -z "$runner" ]; then
-    for c in ~/.claude/plugins/cache/campanha-dev-standards/core/*/scripts/opencode.sh; do [ -f "$c" ] && runner=$c; done   # newest version wins, glob sorts ascending
-    [ -n "$runner" ] || { c=~/.claude/plugins/marketplaces/campanha-dev-standards/plugins/core/scripts/opencode.sh; [ -f "$c" ] && runner=$c; }
-  fi
-fi
+runner=${OPENCODE_SH:-$here/opencode.sh}
 z=0000000000000000000000000000000000000000; empty=4b825dc642cb6eb9a060e54bf8d69288fbee4904
-SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|actions|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/'
+SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|actions|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/|opencode\.json|mise\.toml'
 all=; case ${1:-} in --all) all=1; shift;; esac
 explicit=${1:+1}
 ranges() {   # "from to" lines; trees compared directly, so rollbacks are reviewed too
@@ -43,7 +36,7 @@ while read -r from to; do
   [ -n "$changed" ] || continue
   if [ -z "$explicit$all" ] && ! printf '%s\n' "$changed" | grep -qiE "$SENSITIVE"; then
     echo "review: routine diff $from..$to, skipped (the night shift reviews it; bash scripts/review.sh $from reviews now)"; continue; fi
-  [ -f "$runner" ] || { echo "review: opencode.sh not found (install the core plugin or set OPENCODE_SH)" >&2; exit 1; }
+  [ -f "$runner" ] || { echo "review: $runner not found (run copier update --trust)" >&2; exit 1; }
   start=$(date +%s)
   body=$(git diff "$from" "$to" --)
   out=$(OPENCODE_TIMEOUT=${REVIEW_TIMEOUT:-300} bash "$runner" "$PWD" reviewer <<EOF

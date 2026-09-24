@@ -13,10 +13,12 @@ _skip_if_exists:
   - public/.well-known/security.txt
   - .claude/settings.json
   - .claude/rules/**
-_exclude:
-  - "{% if backend == 'claude' %}.opencode{% endif %}"
-  - "{% if backend == 'opencode' %}.claude/agents{% endif %}"
+  - opencode.json
 _tasks:
+  # parallel workers create .claude/worktrees/ (Claude) and .opencode/worktrees/ (opencode); append, never overwrite the repo's own .gitignore.
+  # Argument list, not a string: copier would run a string in cmd on native Windows. No shell variables: they expand empty under copier's subprocess on Windows, so one task per folder.
+  - command: [bash, -c, "grep -qxF .claude/worktrees/ .gitignore 2>/dev/null || echo .claude/worktrees/ >> .gitignore"]
+  - command: [bash, -c, "grep -qxF .opencode/worktrees/ .gitignore 2>/dev/null || echo .opencode/worktrees/ >> .gitignore"]
   - command: "mise install && lefthook install && echo 'adopted: run the doc-keeper agent to migrate existing docs'"
     when: "{{ _copier_operation == 'copy' }}"
 project_name:
@@ -28,8 +30,3 @@ tenant:
   help: "single = one organisation uses it; multi = several client organisations share it (row-level isolation required)"
   choices: [single, multi]
   default: single
-backend:
-  type: str
-  help: "opencode = workers, review and docs on DeepSeek via opencode go ($10/month per dev) + optional Codex; claude = Claude Code only (Haiku workers, Sonnet review and rescue, on the Claude subscription)"
-  choices: [opencode, claude]
-  default: opencode

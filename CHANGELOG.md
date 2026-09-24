@@ -4,8 +4,28 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-24
+
+### Changed
+- No backends: the copier `backend` question is gone. Claude Code runs on superpowers plus built-in subagents (Opus orchestrator); opencode runs on `.opencode/agents/` with a new `orchestrator` (gpt-6-sol, medium, default agent via `opencode.json`) and a new `rescuer` (gpt-6-sol, high); `worker`, `reviewer` and `docs` are `mode: all`.
+- `scripts/opencode.sh` ships in the template next to `review.sh`; `review.sh` no longer searches the Claude plugin cache. The night shift prefers the repo's runner and checks the ZDR date for every repo.
+- Specs and plans are reviewed by another vendor: Codex through the `codex:codex-rescue` subagent on Claude Code, the DeepSeek `reviewer` on opencode.
+- `AGENTS.md`: `## Parallel work` (parallelise as much as possible) and the `## opencode` worker contract. `mise.toml` sets `OPENCODE_EXPERIMENTAL_LSP_TOOL` for interactive opencode sessions.
+
+### Removed
+- Skills `core:worker`, `core:rescue`, `core:review`, `core:handoff`; runners `worker.sh`, `claude.sh`, `codex.sh`; `template/.claude/agents/`.
+
+### Security
+- The opencode `orchestrator`'s bash permission denies what the Claude hooks deny (gate bypasses, dotenv reads, destructive database commands, token shapes), tested against opencode's own permission check.
+
+## [0.4.0] - 2026-09-24
+
 ### Added
+- Codex backend: copier `backend: codex`. Claude (Opus) orchestrates; worker and rescue call the Codex plugin's `codex:codex-rescue` subagent with `--model gpt-6-sol`; review and night shift use the new runner `scripts/codex.sh` (`codex exec`, instructions from `.claude/agents/<agent>.md`, reviewer read-only, exit 3 `CODEX_UNAVAILABLE`, model `CODEX_MODEL`). The docs agent stays on Haiku through `claude.sh`. Windows needs `[windows] sandbox = "unelevated"` in `~/.codex/config.toml`. Codex has no dotenv deny rule, so the reviewer runs in a throwaway `git worktree` at HEAD (no untracked `.env` there); worker and rescue rely on the prompt. `core:worker` documents how to kill the Codex plugin's orphaned broker that locks a worktree on Windows.
 - Claude-only backend: copier question `backend` (`opencode` default, or `claude`). On `claude` the repo gets `.claude/agents/{worker,rescuer,reviewer,docs}.md` (worker and docs on Haiku, reviewer and rescuer on Sonnet, no shell) instead of `.opencode/`, no Codex plugin, and orchestrator `opus`. `core:worker` and `core:rescue` call `worker` / `rescuer` as native subagents. Review and night shift run outside a session, so they use the new runner `scripts/claude.sh` (`claude -p --agent`, no MCP, same contract as `opencode.sh`, exit 3 `CLAUDE_UNAVAILABLE`); `opencode.sh` hands over to it when `.copier-answers.yml` says `backend: claude` (or `CAMPANHA_BACKEND=claude`).
+
+### Fixed
+- `core:worker`: workers never commit, so the caller commits inside each parallel worktree before cherry-picking; copier appends `.claude/worktrees/` to the repo's `.gitignore`.
 
 ## [0.3.2] - 2026-09-22
 

@@ -5,9 +5,6 @@
    (shims land in `~/.local/share/mise/shims`, already first on the unit's PATH).
 3. Install opencode: `curl -fsSL https://opencode.ai/install | bash`; `opencode auth login`
    with the **dedicated** opencode go account (not a personal one).
-   Claude-only repos (`backend: claude`): install Claude Code instead, run `claude setup-token`
-   with the dedicated account and put the token in a drop-in (`systemctl edit nightly`):
-   `Environment=CLAUDE_CODE_OAUTH_TOKEN=…`. `~/.local/bin` (where `claude` installs) is already on the unit's PATH.
 4. Add one read/write deploy key per repo under `~/.ssh` with a `Host` alias each.
 5. Clone `campanha-dev-standards` to `~/campanha-dev-standards` and each app to
    `~/repos/<name>`.
@@ -18,7 +15,7 @@
 
 Socket needs `SOCKET_API_KEY` in the service environment (`Environment=SOCKET_API_KEY=…` via a drop-in `systemctl edit nightly`), otherwise its section shows an auth error and the run continues.
 
-Monthly (opencode repos only): confirm the DeepSeek row on https://opencode.ai/docs/go/ still says
+Monthly: confirm the DeepSeek row on https://opencode.ai/docs/go/ still says
 0 days / not used, then commit today's date to `docs/dev/reviews/.zdr-confirmed`
 in each repo.
 

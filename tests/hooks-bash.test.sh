@@ -34,6 +34,7 @@ deny  block-unsafe-bash.sh 'cd app && SKIP_REVIEW=1 git push origin main'
 deny  block-unsafe-bash.sh 'export SKIP_REVIEW=1'
 deny  block-unsafe-bash.sh 'export LEFTHOOK=0; git push'
 deny  block-unsafe-bash.sh 'LEFTHOOK_EXCLUDE=review git push'
+deny  block-unsafe-bash.sh 'OPENCODE_SH=./x.sh git push'
 deny  block-unsafe-bash.sh 'env SKIP_REVIEW=1 git push'
 deny  block-unsafe-bash.sh 'SKIP_REVIEW="1" git push'
 deny  block-unsafe-bash.sh "SKIP_REVIEW='1' git push"

@@ -1,12 +1,12 @@
 @AGENTS.md
 
 # Claude-specific
-- Small tasks (bug, UI tweak): no ritual. Do it, run the test, commit. Brainstorm → plan → review only when the user asks or the change crosses modules.
-- Gruntwork (scoped edits, searches): `core:worker` skill ({% if backend == 'opencode' %}DeepSeek on opencode go{% else %}Haiku subagent `worker`{% endif %}); exit 3 → Sonnet subagent (`Agent` tool, `model: sonnet`). You run the tests, trimmed (`| tail -40`).
-- Stuck: `core:rescue` skill ({% if backend == 'opencode' %}fresh DeepSeek session{% else %}Sonnet subagent `rescuer`{% endif %}); verify with `git diff` and the failing command before trusting "done".
-- Review: pre-push runs `scripts/review.sh` on sensitive diffs only (auth, API, db, gates) and blocks; the night shift reviews the rest. When it blocks: `core:review` skill. Never bypass; the human can type `SKIP_REVIEW=1 git push` themselves.
+- Process: the superpowers skills. Small tasks (bug, UI tweak): no ritual — do it, run the test, commit. Brainstorm → spec → plan only when the user asks or the change crosses modules. This overrides superpowers' "invoke a skill on a 1% chance" rule.
+- Delegation: built-in `general-purpose` subagents with an explicit `model` — `haiku` for scoped edits and searches, `sonnet` when stuck and for visual checks. Parallel: one `Agent` call per task in the same message, each with `isolation: "worktree"`. You run the tests; you commit.
+- Stuck: `systematic-debugging` first; then a fresh `general-purpose` subagent on `sonnet` with the problem, the failing command and its output. Verify with `git diff` and that command before trusting "done". `/codex:rescue` is the user's manual escalation.
+- Spec and plan review (replaces superpowers' own spec/plan reviewer subagent): `Agent` with `subagent_type: "codex:codex-rescue"` and the prompt `--wait. Read-only, do not edit. Adversarially review the spec/plan at <path>: assumptions, alternatives, failure modes, migration gaps.` Show its output as-is and check `git status` is unchanged. Empty result or error → a `general-purpose` subagent on `sonnet` with the same prompt; say so in one line. Decide with the user; one line per rejected finding under `## Review notes`.
+- Push blocked: never bypass; the human can type `SKIP_REVIEW=1 git push` themselves.
 - Docs: the night shift refreshes them; run the `doc-keeper` agent (mode diff) only when the user asks or a feature ships.
-- Usage: subagents run on Haiku by default (`CLAUDE_CODE_SUBAGENT_MODEL`); `model: sonnet` only for the worker fallback and visual checks. Never Agent Teams.{% if backend == 'opencode' %} Do not enable the Codex plugin's review gate.{% endif %}
-- Visual verification: a Sonnet subagent drives headless Chrome via the Playwright CLI (viewports 1440×900 and 390×844), reads the screenshots, then deletes them.
+- Usage: never Agent Teams. Do not enable the Codex plugin's review gate.
+- Visual verification: a `sonnet` subagent drives headless Chrome via the Playwright CLI (viewports 1440×900 and 390×844), reads the screenshots, then deletes them.
 - Ponytail level lite: smallest change at the right level — colours, components and business rules are fixed at the source, never in the screen.
-- End of a work block or before the quota runs out: `core:handoff` skill (always the qualified name); it prints a prompt to paste into the next session, any tool.

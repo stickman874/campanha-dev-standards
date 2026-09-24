@@ -1,6 +1,6 @@
 ---
 description: Night-shift documentation refresh. Writes only under docs/ and CHANGELOG.md; no shell, no subagents, no web.
-mode: primary
+mode: all
 model: opencode-go/deepseek-v4.1-flash
 permission:
   bash: deny

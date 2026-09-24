@@ -52,4 +52,13 @@ clean_path=$(IFS=:; for d in $PATH; do [ "$d" = "$W/bin" ] && continue; [ -x "$d
 out=$(echo x | PATH="${clean_path%:}" run ok "$W/repo" worker 2>/dev/null); code=$?; assert_eq 3 "$code" "missing opencode: exit 3"
 assert_exit 2 bash "$S" /nonexistent worker
 printf '' | run ok "$W/repo" worker >/dev/null 2>&1; assert_eq 2 "$?" "empty prompt: exit 2"
+
+# 0.5.0: no backends — a stale answer or env var never diverts the runner
+printf 'backend: claude\n' > "$W/repo/.copier-answers.yml"
+out=$(echo x | run ok "$W/repo" worker 2>/dev/null); assert_eq "Summary: done" "$out" "stale backend answer ignored"
+rm "$W/repo/.copier-answers.yml"
+out=$(echo x | CAMPANHA_BACKEND=claude run ok "$W/repo" worker 2>/dev/null); assert_eq "Summary: done" "$out" "CAMPANHA_BACKEND ignored"
+out=$(echo x | run ok "$W/repo" reviewer 2>/dev/null); code=$?; assert_eq 3 "$code" "missing agent: exit 3"; assert_contains "$out" 'run copier update --trust' "missing agent names the upgrade command"
+cmp -s plugins/core/scripts/opencode.sh template/scripts/opencode.sh && echo "  ok  template and plugin opencode.sh identical" || { echo "  FAIL opencode.sh copies differ"; FAILS=$((FAILS+1)); }
+
 rm -rf "$W"; finish
