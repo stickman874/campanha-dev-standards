@@ -15,6 +15,7 @@ permission:
     "*SKIP_REVIEW=*": deny
     "*LEFTHOOK=0*": deny
     "*LEFTHOOK_EXCLUDE=*": deny
+    "*OPENCODE_SH=*": deny
     "*prisma db push*": deny
     "*prisma migrate reset*": deny
     "*supabase db reset*--linked*": deny

@@ -38,7 +38,7 @@ for c in 'cat .env' 'cd app && cat .env.local' 'source .env.production' 'cat dep
   'cat "deploy/.env.secrets"' "cat '.env.local'" 'cat .env.local .env.example' 'cat .env.example' 'grep KEY .env .env.example' \
   'git commit -m x --no-verify' 'git push --no-verify' 'cd app && git push origin main --no-verify' \
   'git -c core.hooksPath=/dev/null push' 'git config core.hooksPath /dev/null' 'LEFTHOOK=0 git push' 'LEFTHOOK_EXCLUDE=review git push' \
-  'SKIP_REVIEW=1 git push' 'env SKIP_REVIEW=1 git push' 'command git push --no-verify' 'if true; then git push --no-verify; fi' \
+  'SKIP_REVIEW=1 git push' 'env SKIP_REVIEW=1 git push' 'OPENCODE_SH=./x.sh git push' 'command git push --no-verify' 'if true; then git push --no-verify; fi' \
   'npx prisma db push' 'npx prisma migrate reset' 'supabase db reset --linked' \
   "echo ghp_$(t20 a 36)" "echo github_pat_$(t20 a 30)" "echo sk-proj-$(t20 a 20)" "echo sk-ant-$(t20 a 20)" "echo sk_live_$(t20 a 20)" "echo rk_live_$(t20 a 20)" \
   "echo xoxb-$(t20 1 10)" "echo xoxa-$(t20 1 10)" "echo xoxp-$(t20 1 10)" "echo xoxr-$(t20 1 10)" "echo xoxs-$(t20 1 10)" \

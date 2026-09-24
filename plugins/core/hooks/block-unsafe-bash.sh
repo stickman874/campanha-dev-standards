@@ -11,7 +11,7 @@ printf '%s' "$cmd" | grep -Eq -- "${seg}(git|lefthook|npx[[:space:]]+lefthook)[[
   && deny "Git hooks are the quality gate. Never bypass them; fix what the hook reports."
 printf '%s' "$cmd" | grep -Eq -- "${seg}git[[:space:]]+([^;&|\"']|\"[^\"]*\"|'[^']*')*['\"]?core\\.hooksPath" \
   && deny "Git hooks are the quality gate. Never bypass them; fix what the hook reports."
-printf '%s' "$cmd" | grep -Eq -- "${seg}((export|declare[[:space:]]+-x)[[:space:]]+)?(SKIP_REVIEW=(\"1\"|'1'|1)|LEFTHOOK=(\"0\"|'0'|0)|LEFTHOOK_EXCLUDE=)" \
+printf '%s' "$cmd" | grep -Eq -- "${seg}((export|declare[[:space:]]+-x)[[:space:]]+)?(SKIP_REVIEW=(\"1\"|'1'|1)|LEFTHOOK=(\"0\"|'0'|0)|LEFTHOOK_EXCLUDE=|OPENCODE_SH=)" \
   && deny "Skipping the review is the human's call, not yours. Tell the user why it blocked and the exact command they can type themselves."
 # dotenv files read by a shell command (not merely mentioned, e.g. in a commit message), quoted or not. Belt and braces
 # for repos whose .claude/settings.json predates the sandbox; .env.example is allowed.

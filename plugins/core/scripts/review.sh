@@ -9,7 +9,7 @@ set -u
 here=$(cd "$(dirname "$0")" && pwd)
 runner=${OPENCODE_SH:-$here/opencode.sh}
 z=0000000000000000000000000000000000000000; empty=4b825dc642cb6eb9a060e54bf8d69288fbee4904
-SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|actions|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/'
+SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|actions|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/|opencode\.json|mise\.toml'
 all=; case ${1:-} in --all) all=1; shift;; esac
 explicit=${1:+1}
 ranges() {   # "from to" lines; trees compared directly, so rollbacks are reviewed too
