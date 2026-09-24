@@ -61,6 +61,7 @@ Order matters, because the plugin updates for every repo at once while each repo
 - The `codex:codex-rescue` subagent is a forwarder built for rescue tasks; a future plugin version could stop honouring "read-only". Mitigation: the prompt says do not edit, and the orchestrator checks `git status` is unchanged after the review.
 - `reasoningEffort` is passed through to the OpenAI provider by opencode; if the OAuth provider ignores it, the orchestrator runs on the provider default. Checked once at implementation with `opencode run --agent orchestrator` and the event log.
 - opencode never checks bare `export VAR=…`/`VAR=…` commands against `permission.bash` (verified on 1.18.31), so `export SKIP_REVIEW=1; git push` in one command slips the orchestrator's guard. Accepted: `SKIP_REVIEW` still logs to `skipped.log`, and the night shift reviews every pushed range and runs trivy/semgrep; the orchestrator prompt forbids it.
+- The opencode orchestrator's secret guard covers `sk-proj-` and `sk-ant-` keys but not a bare `sk-<20+ chars>` key (the Claude hook does): a wildcard for it would also block `task-…` branch and worktree names. Accepted; gitleaks on commit and trivy at night still scan for it.
 
 ## Not doing
 
