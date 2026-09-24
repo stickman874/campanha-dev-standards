@@ -16,8 +16,9 @@ _skip_if_exists:
   - opencode.json
 _tasks:
   # parallel workers create .claude/worktrees/ (Claude) and .opencode/worktrees/ (opencode); append, never overwrite the repo's own .gitignore.
-  # Argument list, not a string: copier would run a string in cmd on native Windows.
-  - command: [bash, -c, "for d in .claude/worktrees/ .opencode/worktrees/; do grep -qxF \"$d\" .gitignore 2>/dev/null || echo \"$d\" >> .gitignore; done"]
+  # Argument list, not a string: copier would run a string in cmd on native Windows. No shell variables: they expand empty under copier's subprocess on Windows, so one task per folder.
+  - command: [bash, -c, "grep -qxF .claude/worktrees/ .gitignore 2>/dev/null || echo .claude/worktrees/ >> .gitignore"]
+  - command: [bash, -c, "grep -qxF .opencode/worktrees/ .gitignore 2>/dev/null || echo .opencode/worktrees/ >> .gitignore"]
   - command: "mise install && lefthook install && echo 'adopted: run the doc-keeper agent to migrate existing docs'"
     when: "{{ _copier_operation == 'copy' }}"
 project_name:
