@@ -1,6 +1,6 @@
 ---
 description: Unattended worker for scoped edits and code searches. No shell, no subagents, no web; it touches files only through the native tools.
-mode: primary
+mode: all
 model: opencode-go/deepseek-v4.1-flash
 permission:
   bash: deny

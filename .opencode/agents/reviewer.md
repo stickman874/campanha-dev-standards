@@ -1,6 +1,6 @@
 ---
 description: Read-only adversarial reviewer. Can read, grep, glob and use the LSP; cannot edit, run commands, spawn agents or fetch the web.
-mode: primary
+mode: all
 model: opencode-go/deepseek-v4.1-flash
 permission:
   edit: deny
