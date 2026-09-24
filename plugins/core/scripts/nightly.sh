@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Night shift for one adopted repo checkout (runs on the server from a systemd timer; see deploy/nightly/).
-#   nightly.sh <repo>   needs: git with push rights, opencode login (or claude login on the Claude backend), semgrep, trivy, npx (Socket), jq.
+#   nightly.sh <repo>   needs: git with push rights, opencode login (claude login on the Claude backend; codex login + claude login on the Codex backend), semgrep, trivy, npx (Socket), jq.
 # Reviews everything pushed to origin/main since the last run, runs the scanners, refreshes docs with the `docs` agent,
 # commits to branch nightly/<date> and pushes only that branch. Report: docs/dev/reviews/<date>.md.
 # Exit 0 every step ran (findings do not fail the run) · 1 a step could not run (tool missing, reviewer unavailable, push failed) · 2 usage.
@@ -21,7 +21,7 @@ step() {   # step <name> <command...>: appends a section; a missing tool is name
 }
 {
   echo "# Night shift $day"; echo; echo "Range: \`$from..$to\` ($(git rev-list --count "$from..$to" 2>/dev/null || echo '?') commits)"
-  if ! grep -q '^backend: *claude' .copier-answers.yml 2>/dev/null; then
+  if ! grep -qE '^backend: *(claude|codex)' .copier-answers.yml 2>/dev/null; then
     zdr=$(cat docs/dev/reviews/.zdr-confirmed 2>/dev/null || echo 1970-01-01)
     [ $(( ( $(date +%s) - $(date -d "$zdr" +%s 2>/dev/null || echo 0) ) / 86400 )) -le 35 ] || { echo; echo "> WARNING: opencode go zero-data-retention for DeepSeek last confirmed $zdr. Check https://opencode.ai/docs/go/ and write today's date to docs/dev/reviews/.zdr-confirmed."; }
   fi

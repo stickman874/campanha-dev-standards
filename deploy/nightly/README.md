@@ -8,6 +8,8 @@
    Claude-only repos (`backend: claude`): install Claude Code instead, run `claude setup-token`
    with the dedicated account and put the token in a drop-in (`systemctl edit nightly`):
    `Environment=CLAUDE_CODE_OAUTH_TOKEN=…`. `~/.local/bin` (where `claude` installs) is already on the unit's PATH.
+   Codex repos (`backend: codex`): Claude Code as above (the docs agent stays on Haiku) plus
+   `npm i -g @openai/codex` and `codex login --device-auth` with the dedicated ChatGPT account.
 4. Add one read/write deploy key per repo under `~/.ssh` with a `Host` alias each.
 5. Clone `campanha-dev-standards` to `~/campanha-dev-standards` and each app to
    `~/repos/<name>`.

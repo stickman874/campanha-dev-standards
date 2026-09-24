@@ -10,7 +10,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 
 ## Models
 - Orchestrator (plans, decides, reviews): the tool's strongest model. Never Kimi.
-{% if backend == 'opencode' %}- Worker (well-scoped edits and code searches): DeepSeek V4.1 Flash via opencode if you have opencode-go; otherwise Sonnet. The orchestrator commits.{% else %}- Claude Code only: orchestrator Opus 5.5; worker Haiku (`.claude/agents/worker.md`), fallback Sonnet; review and rescue Sonnet (`reviewer.md`, `rescuer.md`). No opencode, no Codex. The orchestrator commits.{% endif %}
+{% if backend == 'opencode' %}- Worker (well-scoped edits and code searches): DeepSeek V4.1 Flash via opencode if you have opencode-go; otherwise Sonnet. The orchestrator commits.{% elif backend == 'claude' %}- Claude Code only: orchestrator Opus 5.5; worker Haiku (`.claude/agents/worker.md`), fallback Sonnet; review and rescue Sonnet (`reviewer.md`, `rescuer.md`). No opencode, no Codex. The orchestrator commits.{% else %}- Codex backend: orchestrator Claude Opus 5.5; worker, rescue and review gpt-6-sol on the Codex login (Codex plugin `codex:codex-rescue`, `scripts/codex.sh`); docs Haiku; fallback Sonnet. The orchestrator commits.{% endif %}
 - On a quota or rate-limit error, fall back to the next option and say so in one line. Retry the worker once at the next milestone, never in a loop.
 - Worker returned partial or failing work: one correction round with the exact failure, then the fallback or the orchestrator. No retry loops.
 {% if backend == 'opencode' %}- Without Claude: `opencode run --agent worker --auto "<task>"` from the repo (agent in `.opencode/agents/`, no shell).{% endif %}
@@ -45,7 +45,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 
 ## Gates (do not bypass)
 - commit: gitleaks, eslint (incl. design lint).
-- push: typecheck, tests related to the changed files (`vitest related`); `scripts/review.sh` ({% if backend == 'opencode' %}DeepSeek{% else %}Sonnet{% endif %}, read-only) when the diff touches auth, API handlers, db or the gates.
+- push: typecheck, tests related to the changed files (`vitest related`); `scripts/review.sh` ({% if backend == 'opencode' %}DeepSeek{% elif backend == 'codex' %}gpt-6-sol{% else %}Sonnet{% endif %}, read-only) when the diff touches auth, API handlers, db or the gates.
 - night shift (server): full test suite, semgrep, trivy, Socket, review of everything pushed, docs refresh → branch `nightly/<date>` and `docs/dev/reviews/<date>.md`. Read the latest report at session start.
 - Humans may force a push with `SKIP_REVIEW=1 git push` (logged in `docs/dev/reviews/skipped.log` — commit that file; reviewed at night). Agents may not.
 

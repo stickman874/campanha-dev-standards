@@ -14,7 +14,7 @@ _skip_if_exists:
   - .claude/settings.json
   - .claude/rules/**
 _exclude:
-  - "{% if backend == 'claude' %}.opencode{% endif %}"
+  - "{% if backend != 'opencode' %}.opencode{% endif %}"
   - "{% if backend == 'opencode' %}.claude/agents{% endif %}"
 _tasks:
   # parallel subagents (isolation: worktree) create .claude/worktrees/; append, never overwrite the repo's own .gitignore
@@ -32,6 +32,6 @@ tenant:
   default: single
 backend:
   type: str
-  help: "opencode = workers, review and docs on DeepSeek via opencode go ($10/month per dev) + optional Codex; claude = Claude Code only (Haiku workers, Sonnet review and rescue, on the Claude subscription)"
-  choices: [opencode, claude]
+  help: "opencode = workers, review and docs on DeepSeek via opencode go ($10/month per dev) + optional Codex; claude = Claude Code only (Haiku workers, Sonnet review and rescue, on the Claude subscription); codex = Claude orchestrates, gpt-6-sol on the Codex login does the work, review and rescue (Codex plugin), docs stay on Haiku"
+  choices: [opencode, claude, codex]
   default: opencode

@@ -5,16 +5,16 @@
     "security-guidance@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,{% if backend == 'opencode' %}
+    "playwright@claude-plugins-official": true,{% if backend != 'claude' %}
     "codex@openai-codex": true,{% endif %}
     "impeccable@impeccable": true
   },
   "extraKnownMarketplaces": {
-    "campanha-dev-standards": { "source": { "source": "github", "repo": "stickman874/campanha-dev-standards" } },{% if backend == 'opencode' %}
+    "campanha-dev-standards": { "source": { "source": "github", "repo": "stickman874/campanha-dev-standards" } },{% if backend != 'claude' %}
     "openai-codex": { "source": { "source": "github", "repo": "openai/codex-plugin-cc" } },{% endif %}
     "impeccable": { "source": { "source": "github", "repo": "pbakaus/impeccable" } }
   },
-{% if backend == 'claude' %}  "model": "opus",
+{% if backend != 'opencode' %}  "model": "opus",
 {% endif %}  "env": { "CLAUDE_CODE_SUBAGENT_MODEL": "haiku" },
   "sandbox": { "enabled": true, "autoAllowBashIfSandboxed": true },
   "permissions": { "deny": ["Read(./.env)", "Read(./.env.*)"], "allow": ["Read(./.env.example)"] }

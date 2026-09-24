@@ -10,6 +10,8 @@ One development methodology for every project: gates, living docs, cheap workers
 
 Claude-only repos (`backend: claude` at adopt) skip opencode and Codex: workers and docs run on Haiku, review and rescue on Sonnet, as subagents in your session (review and night shift through `claude -p`, since they run outside one), on your Claude Code login.
 
+Codex repos (`backend: codex`): Claude (Opus) orchestrates; worker, rescue and review run on gpt-6-sol with your Codex login (`npm i -g @openai/codex`, `codex login`, plus the openai/codex-plugin-cc plugin). Worker and rescue go through the plugin's `codex:codex-rescue` subagent; review and night shift through `scripts/codex.sh` (`codex exec`). Docs stay on Haiku. Windows: add `[windows] sandbox = "unelevated"` to `~/.codex/config.toml`, or Codex cannot read the repo.
+
 Then inside Claude Code:
 
     /plugin marketplace add stickman874/campanha-dev-standards
@@ -30,7 +32,7 @@ Team communication defaults ship in each repo's `AGENTS.md` (read by Claude and 
 Inside Claude Code run `/adopt`. Or by hand:
 
     mise use -g pipx:copier          # once per machine (or prefix the next line with `uvx`)
-    copier copy --trust gh:stickman874/campanha-dev-standards .   # asks project name, tenant, backend (opencode | claude)
+    copier copy --trust gh:stickman874/campanha-dev-standards .   # asks project name, tenant, backend (opencode | claude | codex)
     mise install && lefthook install
 
 To pull template updates later: `copier update --trust`. Files you edit by hand — AGENTS.md, docs/, README, CHANGELOG, DESIGN.md, SECURITY.md, .claude/ — are never overwritten.
@@ -40,10 +42,10 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
 - Commit gates: gitleaks (staged) and eslint, including design lint via `eslint-plugin-better-tailwindcss` (see `docs/dev/how-to/design-lint.md`).
 - Push gates (seconds): typecheck, tests, and a read-only DeepSeek review (`scripts/review.sh`, JSON findings, blocks on `high`) only when the diff touches auth, API handlers, db or the gates. Humans can force with `SKIP_REVIEW=1 git push` (commit the log); agents cannot.
 - Night shift (`scripts/nightly.sh`, systemd timer on your server, see `deploy/nightly/`): semgrep, trivy, Socket, full review and a docs refresh over everything pushed that day → branch `nightly/<date>` + `docs/dev/reviews/<date>.md`.
-- Usage economy: all gruntwork, review and docs run on opencode go (DeepSeek V4.1 Flash), not on the Claude subscription; subagents on Haiku; no Agent Teams; Codex optional. Backend `claude`: same flow on Claude only (Haiku worker/docs, Sonnet reviewer/rescuer, Opus orchestrator).
+- Usage economy: all gruntwork, review and docs run on opencode go (DeepSeek V4.1 Flash), not on the Claude subscription; subagents on Haiku; no Agent Teams; Codex optional. Backend `claude`: same flow on Claude only (Haiku worker/docs, Sonnet reviewer/rescuer, Opus orchestrator). Backend `codex`: Opus orchestrator, gpt-6-sol worker/rescuer/reviewer on the Codex login, Haiku docs.
 - Claude hooks: `block-secrets.sh` (secret shapes in command text) and `block-unsafe-bash.sh` (`--no-verify`, `hooksPath`, `prisma db push`/`reset`, `supabase db reset --linked`).
 - Secrets: sandbox + `permissions.deny` in the settings template; opencode denies dotenv reads natively.
-- `core:worker`, `core:review`, `core:rescue` skills over one runner (`scripts/opencode.sh`, `opencode run --format json`, or `scripts/claude.sh`, `claude -p --agent`, on backend `claude`); project agents with real permission limits (`worker`, `reviewer`, `docs`).
+- `core:worker`, `core:review`, `core:rescue` skills over one runner (`scripts/opencode.sh`, `opencode run --format json`, or `scripts/claude.sh`, `claude -p --agent`, on backend `claude`, or `scripts/codex.sh`, `codex exec`, on backend `codex`); project agents with real permission limits (`worker`, `reviewer`, `docs`).
 - `doc-keeper` agent (mode `diff` on request or when a feature ships, `bootstrap` on adopt, `consolidate` weekly) keeps `docs/dev`, `docs/product` and CHANGELOG current.
 - `core:handoff` prints a prompt to paste into the next session (any tool).
 - Official plugins enabled by the settings template: superpowers, security-guidance, commit-commands, typescript-lsp, playwright, codex, impeccable.

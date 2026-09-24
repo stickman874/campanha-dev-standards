@@ -1,11 +1,11 @@
 ---
 name: worker
-description: Use to hand a well-scoped edit or code search to the cheap no-shell worker instead of a Sonnet subagent - DeepSeek V4.1 Flash on opencode go (a script), or on a Claude-only repo the Haiku `worker` subagent. On DEEPSEEK_UNAVAILABLE or a failed Haiku run, redo the task with a Sonnet subagent.
+description: Use to hand a well-scoped edit or code search to the cheap no-shell worker instead of a Sonnet subagent - DeepSeek V4.1 Flash on opencode go (a script), on a Claude-only repo the Haiku `worker` subagent, on a Codex repo gpt-6-sol through the Codex plugin. On DEEPSEEK_UNAVAILABLE or a failed run, redo the task with a Sonnet subagent.
 ---
 
 # Worker
 
-Backend comes from the repo: `backend: claude` in `.copier-answers.yml` → section **Claude-only repo** below; otherwise DeepSeek on opencode go:
+Backend comes from the repo: `backend: claude` in `.copier-answers.yml` → section **Claude-only repo** below; `backend: codex` → **Codex repo**; otherwise DeepSeek on opencode go:
 
     bash "<base directory>/../../scripts/worker.sh" "<absolute repo path>" <<'TASK_END'
     Outcome: the behaviour or artifact that must exist
@@ -33,3 +33,9 @@ After it returns (the checks the opencode script makes, made by you):
 - Compare its `Files:` lines with `git status --short`: a file it claims but git does not show was not changed; treat the claim as false. It read but changed nothing → sharpen `Files:` and `Outcome:` and call once more; then Sonnet.
 - Read `git diff`, run the relevant test file yourself, trimmed: `npm test -- --run <file> 2>&1 | tail -40`. One failure → one more call with the error pasted; still failing → a Sonnet subagent (`Agent` tool, `model: sonnet`) or you.
 - Rate limit or error: keep or revert its partial changes, then Sonnet. `SensitiveSeen` and commits: as above.
+
+## Codex repo
+
+`Agent` tool, `subagent_type: "codex:codex-rescue"` (the Codex plugin's forwarder), prompt = `--wait --write --model gpt-6-sol` on the first line, then the same `Outcome / Files / Keep / Config` brief, then: "Do not commit. End with `Summary:`, `Files:` (one `- path — why` line per changed file), `Verify:`, `Partial:`, `SensitiveSeen:`." Codex has a shell and may run tests itself; you still run them. Commit or stash first; parallel workers: one call per task in the same message, each with `isolation: "worktree"`, then commit inside each worktree and cherry-pick, as above.
+
+After it returns: the checks of **Claude-only repo**. No output, a Codex error or a usage limit → keep or revert its changes, then Sonnet. Windows needs `[windows] sandbox = "unelevated"` in `~/.codex/config.toml`, or Codex cannot read or write the repo (it says the workspace is read-only).
