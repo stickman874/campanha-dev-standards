@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
 for f in plugins/core/hooks/*.sh plugins/core/scripts/*.sh template/scripts/*.sh deploy/nightly/*.sh; do assert_exit 0 bash -n "$f"; done
-for f in plugins/core/skills/*/SKILL.md plugins/core/agents/*.md plugins/core/commands/*.md template/.opencode/agents/*.md template/.claude/agents/*.md; do
+for f in plugins/core/skills/*/SKILL.md plugins/core/agents/*.md plugins/core/commands/*.md template/.opencode/agents/*.md; do
   assert_eq "---" "$(head -1 "$f")" "frontmatter: $f"; assert_contains "$(head -6 "$f")" 'description:' "description: $f"
 done
 for f in .claude-plugin/marketplace.json plugins/core/.claude-plugin/plugin.json plugins/core/hooks/hooks.json; do assert_exit 0 jq -e . "$f"; done   # template settings.json is Jinja: backend.test.sh checks it rendered

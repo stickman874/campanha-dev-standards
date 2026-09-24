@@ -13,12 +13,11 @@ _skip_if_exists:
   - public/.well-known/security.txt
   - .claude/settings.json
   - .claude/rules/**
-_exclude:
-  - "{% if backend != 'opencode' %}.opencode{% endif %}"
-  - "{% if backend == 'opencode' %}.claude/agents{% endif %}"
+  - opencode.json
 _tasks:
-  # parallel subagents (isolation: worktree) create .claude/worktrees/; append, never overwrite the repo's own .gitignore
-  - command: "grep -qxF '.claude/worktrees/' .gitignore 2>/dev/null || echo '.claude/worktrees/' >> .gitignore"
+  # parallel workers create .claude/worktrees/ (Claude) and .opencode/worktrees/ (opencode); append, never overwrite the repo's own .gitignore.
+  # Argument list, not a string: copier would run a string in cmd on native Windows.
+  - command: [bash, -c, "for d in .claude/worktrees/ .opencode/worktrees/; do grep -qxF \"$d\" .gitignore 2>/dev/null || echo \"$d\" >> .gitignore; done"]
   - command: "mise install && lefthook install && echo 'adopted: run the doc-keeper agent to migrate existing docs'"
     when: "{{ _copier_operation == 'copy' }}"
 project_name:
@@ -30,8 +29,3 @@ tenant:
   help: "single = one organisation uses it; multi = several client organisations share it (row-level isolation required)"
   choices: [single, multi]
   default: single
-backend:
-  type: str
-  help: "opencode = workers, review and docs on DeepSeek via opencode go ($10/month per dev) + optional Codex; claude = Claude Code only (Haiku workers, Sonnet review and rescue, on the Claude subscription); codex = Claude orchestrates, gpt-6-sol on the Codex login does the work, review and rescue (Codex plugin), docs stay on Haiku"
-  choices: [opencode, claude, codex]
-  default: opencode
