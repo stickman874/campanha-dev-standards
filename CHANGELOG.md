@@ -4,6 +4,20 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-24
+
+### Changed
+- No backends: the copier `backend` question is gone. Claude Code runs on superpowers plus built-in subagents (Opus orchestrator); opencode runs on `.opencode/agents/` with a new `orchestrator` (gpt-6-sol, medium, default agent via `opencode.json`) and a new `rescuer` (gpt-6-sol, high); `worker`, `reviewer` and `docs` are `mode: all`.
+- `scripts/opencode.sh` ships in the template next to `review.sh`; `review.sh` no longer searches the Claude plugin cache. The night shift prefers the repo's runner and checks the ZDR date for every repo.
+- Specs and plans are reviewed by another vendor: Codex through the `codex:codex-rescue` subagent on Claude Code, the DeepSeek `reviewer` on opencode.
+- `AGENTS.md`: `## Parallel work` (parallelise as much as possible) and the `## opencode` worker contract. `mise.toml` sets `OPENCODE_EXPERIMENTAL_LSP_TOOL` for interactive opencode sessions.
+
+### Removed
+- Skills `core:worker`, `core:rescue`, `core:review`, `core:handoff`; runners `worker.sh`, `claude.sh`, `codex.sh`; `template/.claude/agents/`.
+
+### Security
+- The opencode `orchestrator`'s bash permission denies what the Claude hooks deny (gate bypasses, dotenv reads, destructive database commands, token shapes), tested against opencode's own permission check.
+
 ## [0.4.0] - 2026-09-24
 
 ### Added

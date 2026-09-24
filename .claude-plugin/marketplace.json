@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "core",
-      "description": "Two Bash hooks, doc-keeper agent, worker / review / rescue / handoff skills over opencode go (DeepSeek), Claude Code only (Haiku/Sonnet via claude -p) or Codex (gpt-6-sol), /adopt and /docs-consolidate commands; project template via copier (lefthook gates, night-shift scripts, mise.toml, docs tree).",
+      "description": "Two Bash hooks, doc-keeper agent, /adopt and /docs-consolidate commands, push review and night shift over opencode go (DeepSeek); project template via copier (lefthook gates, opencode agents, AGENTS.md process rules for Claude Code with superpowers and for opencode, mise.toml, docs tree).",
       "source": "./plugins/core",
       "category": "productivity"
     }
