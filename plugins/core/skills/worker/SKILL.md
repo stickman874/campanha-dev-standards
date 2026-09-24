@@ -39,3 +39,9 @@ After it returns (the checks the opencode script makes, made by you):
 `Agent` tool, `subagent_type: "codex:codex-rescue"` (the Codex plugin's forwarder), prompt = `--wait --write --model gpt-6-sol` on the first line, then the same `Outcome / Files / Keep / Config` brief, then: "Do not commit. End with `Summary:`, `Files:` (one `- path — why` line per changed file), `Verify:`, `Partial:`, `SensitiveSeen:`." Codex has a shell and may run tests itself; you still run them. Commit or stash first; parallel workers: one call per task in the same message, each with `isolation: "worktree"`, then commit inside each worktree and cherry-pick, as above.
 
 After it returns: the checks of **Claude-only repo**. No output, a Codex error or a usage limit → keep or revert its changes, then Sonnet. Windows needs `[windows] sandbox = "unelevated"` in `~/.codex/config.toml`, or Codex cannot read or write the repo (it says the workspace is read-only).
+
+Windows, parallel workers: the Codex plugin leaves one `app-server-broker.mjs` per worktree running (it outlives even the session) and it locks the folder. Before `git worktree remove`, kill it (PowerShell):
+
+    Get-CimInstance Win32_Process -Filter "Name='node.exe'" | ? { $_.CommandLine -match 'app-server-broker' -and $_.CommandLine -match [regex]::Escape('<worktree folder name>') } | % { taskkill /PID $_.ProcessId /T /F }
+
+Some child `bash.exe` report "Access is denied"; the `codex.exe` processes still die and the folder unlocks.

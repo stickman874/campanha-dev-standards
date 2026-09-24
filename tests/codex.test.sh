@@ -4,10 +4,11 @@ source "$(dirname "$0")/lib.sh"
 S="$PWD/plugins/core/scripts/codex.sh"; O="$PWD/plugins/core/scripts/opencode.sh"
 W=$(mktemp -d); mkdir -p "$W/bin" "$W/repo/.claude/agents"
 for a in worker reviewer docs; do cp "template/.claude/agents/$a.md" "$W/repo/.claude/agents/"; done
-git -C "$W/repo" init -q
+git -C "$W/repo" init -q; echo SECRET=1 > "$W/repo/.env"; echo .env > "$W/repo/.gitignore"
+git -C "$W/repo" add -A && git -C "$W/repo" -c user.name=t -c user.email=t@t commit -qm init
 cat > "$W/bin/codex" <<'FAKE'
 #!/usr/bin/env bash
-printf '%s\n' "$@" > "$FAKE_ARGS"; cat > "$FAKE_ARGS.stdin"
+printf '%s\n' "$@" > "$FAKE_ARGS"; cat > "$FAKE_ARGS.stdin"; { pwd; ls -A; } > "$FAKE_ARGS.cwd"
 while [ $# -gt 0 ]; do [ "$1" = -o ] && out=$2; shift; done
 ev() { printf '%s\n' "$1"; }
 case $FAKE_MODE in
@@ -39,7 +40,9 @@ st=$(cat "$FAKE_ARGS.stdin")
 assert_contains "$st" '^You are a worker' "agent instructions from .claude/agents"; assert_contains "$st" '^do x$' "task appended"
 assert_eq 0 "$(grep -c '^model: haiku' "$FAKE_ARGS.stdin")" "frontmatter stripped"
 echo x | CODEX_MODEL=gpt-6-luna run ok "$W/repo" reviewer >/dev/null 2>&1
-assert_contains "$(cat "$FAKE_ARGS")" '^read-only$' "reviewer is read-only"; assert_contains "$(cat "$FAKE_ARGS")" '^gpt-6-luna$' "CODEX_MODEL overrides"
+assert_contains "$(cat "$FAKE_ARGS")" '^read-only$' "reviewer is read-only"
+assert_eq 0 "$(grep -c '^\.env$' "$FAKE_ARGS.cwd")" "reviewer runs where no .env exists"; assert_contains "$(cat "$FAKE_ARGS.cwd")" '^\.gitignore$' "reviewer sees the committed tree"
+assert_eq 1 "$(git -C "$W/repo" worktree list | wc -l)" "reviewer worktree removed"; assert_contains "$(cat "$FAKE_ARGS")" '^gpt-6-luna$' "CODEX_MODEL overrides"
 out=$(echo x | run limit "$W/repo" worker 2>/dev/null); code=$?
 assert_eq 3 "$code" "turn.failed: exit 3"; assert_contains "$out" '^CODEX_UNAVAILABLE: codex error: .*usage limit' "reason first"; assert_contains "$out" 'partial' "partial text returned"
 out=$(echo x | OPENCODE_TIMEOUT=2 run hang "$W/repo" worker 2>/dev/null); code=$?
