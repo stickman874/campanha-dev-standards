@@ -6,9 +6,10 @@ for t in semgrep trivy; do printf '#!/usr/bin/env bash\necho "%s: 1 finding"\nex
 printf '#!/usr/bin/env bash\necho "socket: ok"\n' > "$W/bin/npx"; chmod +x "$W/bin/npx"
 cat > "$W/bin/opencode" <<'EOF'
 #!/usr/bin/env bash
-agent=; while [ $# -gt 0 ]; do case $1 in --agent) agent=$2; shift;; esac; shift; done
+agent=; f=; while [ $# -gt 0 ]; do case $1 in --agent) agent=$2; shift;; -f) f=$2; shift;; esac; shift; done
 case $agent in
-  reviewer) jq -nc '{type:"text",part:{text:"{\"verdict\":\"block\",\"findings\":[{\"severity\":\"medium\",\"file\":\"src/a.ts\",\"line\":1,\"what\":\"w\",\"fix\":\"f\"}]}"}}';;
+  reviewer) n=$(grep -o 'nonce":"[0-9a-f]*' "$f" | head -1 | cut -d'"' -f3)
+            jq -nc --arg n "$n" '{type:"text",part:{text:({nonce:$n,verdict:"block",findings:[{severity:"medium",file:"src/a.ts",line:1,what:"w",fix:"f"}]}|tojson)}}';;
   docs)     echo "- src/a.ts: a" >> docs/dev/architecture.md; jq -nc '{type:"tool_use",part:{tool:"edit"}}'; jq -nc '{type:"text",part:{text:"docs updated"}}';;
 esac
 echo '{"type":"step_finish","part":{"tokens":{"total":1},"cost":0}}'

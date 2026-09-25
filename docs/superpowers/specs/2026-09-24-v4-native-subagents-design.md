@@ -63,6 +63,8 @@ Order matters, because the plugin updates for every repo at once while each repo
 - opencode never checks bare `export VAR=…`/`VAR=…` commands against `permission.bash` (verified on 1.18.31), so `export SKIP_REVIEW=1; git push` in one command slips the orchestrator's guard. Accepted: `SKIP_REVIEW` still logs to `skipped.log`, and the night shift reviews every pushed range and runs trivy/semgrep; the orchestrator prompt forbids it.
 - The opencode orchestrator's secret guard covers `sk-proj-` and `sk-ant-` keys but not a bare `sk-<20+ chars>` key (the Claude hook does): a wildcard for it would also block `task-…` branch and worktree names. Accepted; gitleaks on commit and trivy at night still scan for it.
 
+- opencode's `grep` permission is checked against the search pattern, not the file path (verified on 1.18.31): an explicit `.env` path is searchable even with a deny rule. Normal searches skip gitignored `.env`. The orchestrator's bash deny list for dotenv readers is best-effort (e.g. `python -c`, `$(<.env)` are not covered). Accepted: `.env` stays gitignored and out of commits; gitleaks and trivy scan for leaks.
+
 ## Not doing
 
 - Keeping a Claude → DeepSeek worker path "for cheap bulk work". Re-add as a skill if quota becomes a problem again.

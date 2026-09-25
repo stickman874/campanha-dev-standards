@@ -4,6 +4,15 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-09-25
+
+### Security
+- `review.sh`: each run sends the reviewer a random nonce and only accepts a verdict object that carries it, so a verdict planted in the diff can no longer approve a push.
+- `review.sh`: `.review-paths` and `.copier-answers.yml` count as sensitive, so weakening the extra paths is itself reviewed.
+
+### Known limits (documented)
+- opencode's `grep` tool permission matches the search pattern, not the file: an explicit `.env` path is still searchable. Normal searches skip gitignored `.env` files. The orchestrator's bash reader list is best-effort.
+
 ## [0.5.3] - 2026-09-25
 
 ### Security
