@@ -4,6 +4,15 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-09-25
+
+### Security
+- `review.sh`: an invalid regex in `.review-paths` made grep fail and the push was treated as routine (unreviewed); it now blocks with "invalid regex in .review-paths".
+- `review.sh`: a reply with two different verdict objects (e.g. a fake approve copied from the diff) blocks; the diff is fenced in the prompt as untrusted data.
+
+### Changed
+- `review.sh`: reviewer timeout default 600 s (large diffs timed out at 300 s).
+
 ## [0.5.2] - 2026-09-25
 
 ### Changed
