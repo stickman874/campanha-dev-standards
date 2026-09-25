@@ -4,6 +4,14 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-09-25
+
+### Changed
+- Claude Code subagents default to Sonnet (`CLAUDE_CODE_SUBAGENT_MODEL`, `CLAUDE.md` delegation line): Haiku 4.5 needed more correction rounds and cost more per finished task in real use. Revisit when Haiku 5.5 ships.
+
+### Fixed
+- `review.sh` is stored with LF endings again; `.gitattributes` pins `*.sh` to LF.
+
 ## [0.5.1] - 2026-09-25
 
 ### Fixed

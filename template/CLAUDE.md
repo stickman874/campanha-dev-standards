@@ -2,7 +2,7 @@
 
 # Claude-specific
 - Process: the superpowers skills. Small tasks (bug, UI tweak): no ritual — do it, run the test, commit. Brainstorm → spec → plan only when the user asks or the change crosses modules. This overrides superpowers' "invoke a skill on a 1% chance" rule.
-- Delegation: built-in `general-purpose` subagents with an explicit `model` — `haiku` for scoped edits and searches, `sonnet` when stuck and for visual checks. Parallel: one `Agent` call per task in the same message, each with `isolation: "worktree"`. You run the tests; you commit.
+- Delegation: built-in `general-purpose` subagents with an explicit `model` — `sonnet` for scoped edits, searches, getting unstuck and visual checks (Haiku only after Haiku 5.5 ships). Parallel: one `Agent` call per task in the same message, each with `isolation: "worktree"`. You run the tests; you commit.
 - Stuck: `systematic-debugging` first; then a fresh `general-purpose` subagent on `sonnet` with the problem, the failing command and its output. Verify with `git diff` and that command before trusting "done". `/codex:rescue` is the user's manual escalation.
 - Spec and plan review (replaces superpowers' own spec/plan reviewer subagent): `Agent` with `subagent_type: "codex:codex-rescue"` and the prompt `--wait. Read-only, do not edit. Adversarially review the spec/plan at <path>: assumptions, alternatives, failure modes, migration gaps.` Show its output as-is and check `git status` is unchanged. Empty result or error → a `general-purpose` subagent on `sonnet` with the same prompt; say so in one line. Decide with the user; one line per rejected finding under `## Review notes`.
 - Push blocked: never bypass; the human can type `SKIP_REVIEW=1 git push` themselves.

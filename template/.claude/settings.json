@@ -15,7 +15,7 @@
     "impeccable": { "source": { "source": "github", "repo": "pbakaus/impeccable" } }
   },
   "model": "opus",
-  "env": { "CLAUDE_CODE_SUBAGENT_MODEL": "haiku" },
+  "env": { "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet" },
   "sandbox": { "enabled": true, "autoAllowBashIfSandboxed": true },
   "permissions": { "deny": ["Read(./.env)", "Read(./.env.*)"], "allow": ["Read(./.env.example)"] }
 }
