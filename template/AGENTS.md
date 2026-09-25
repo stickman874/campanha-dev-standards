@@ -57,7 +57,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 
 ## Gates (do not bypass)
 - commit: gitleaks, eslint (incl. design lint).
-- push: typecheck, tests related to the changed files (`vitest related`); `scripts/review.sh` (DeepSeek on opencode go, read-only) when the diff touches auth, API handlers, db or the gates. Blocked: read the `[high]` lines, fix, commit, push again; max 3 rounds, then show the findings to the user. On demand: `bash scripts/review.sh <base>`.
+- push: typecheck, tests related to the changed files (`vitest related`); `scripts/review.sh` (DeepSeek on opencode go, read-only) when the diff touches auth, API handlers, db or the gates — extra sensitive paths per repo: `.review-paths`, one regex per line. Blocked: read the `[high]` lines, fix, commit, push again; max 3 rounds, then show the findings to the user. On demand: `bash scripts/review.sh <base>`.
 - night shift (server): full test suite, semgrep, trivy, Socket, review of everything pushed, docs refresh → branch `nightly/<date>` and `docs/dev/reviews/<date>.md`. Read the latest report at session start.
 - Humans may force a push with `SKIP_REVIEW=1 git push` (logged in `docs/dev/reviews/skipped.log` — commit that file; reviewed at night). Agents never do it.
 

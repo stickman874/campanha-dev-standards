@@ -40,7 +40,7 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
 ## What you get
 
 - Commit gates: gitleaks (staged) and eslint, including design lint via `eslint-plugin-better-tailwindcss` (see `docs/dev/how-to/design-lint.md`).
-- Push gates (seconds): typecheck, tests, and a read-only DeepSeek review (`scripts/review.sh`, JSON findings, blocks on `high`) only when the diff touches auth, API handlers, db or the gates. Humans can force with `SKIP_REVIEW=1 git push` (commit the log); agents are blocked from it (opencode: see the known gap in the v4 spec).
+- Push gates (seconds): typecheck, tests, and a read-only DeepSeek review (`scripts/review.sh`, JSON findings, blocks on `high`) only when the diff touches auth, API handlers, db or the gates. Repos add their own extra sensitive paths in `.review-paths` (one regex per line, not shipped by the template). Humans can force with `SKIP_REVIEW=1 git push` (commit the log); agents are blocked from it (opencode: see the known gap in the v4 spec).
 - Night shift (`scripts/nightly.sh`, systemd timer on your server, see `deploy/nightly/`): semgrep, trivy, Socket, full review and a docs refresh over everything pushed that day → branch `nightly/<date>` + `docs/dev/reviews/<date>.md`.
 - Process: Claude Code follows superpowers (brainstorm → spec → plan → execution), with Codex reviewing specs and plans (`codex:codex-rescue`, read-only); opencode follows the `## opencode` contract in `AGENTS.md`. Both orchestrators parallelise as much as possible.
 - Claude hooks: `block-secrets.sh` (secret shapes in command text) and `block-unsafe-bash.sh` (`--no-verify`, `hooksPath`, `prisma db push`/`reset`, `supabase db reset --linked`).

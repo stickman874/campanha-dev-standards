@@ -4,7 +4,21 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
-## [0.5.0] - 2026-09-24
+## [0.5.1] - 2026-09-25
+
+### Fixed
+- `review.sh`: the verdict JSON is now the LAST balanced-brace object in the reviewer's reply that has a `verdict` key, so stray braces in prose (e.g. a literal `{push_files}`) before the real answer no longer fool the parser into "no valid JSON verdict, blocked".
+- Claude hook `block-unsafe-bash.sh`: `core.hooksPath` check is now case-insensitive (`CORE.HOOKSPATH` was slipping through); short no-verify commit flags (`-n`, clusters like `-an`) are denied without touching a lone `-m`; force pushes (`--force`, `--force-with-lease`, ` -f`, `+refspec`) and pushes to a `prod`-named ref are denied. Quoted commit messages mentioning these words stay allowed.
+
+### Security
+- `review.sh`: severity comparison is now case-insensitive — any finding whose lowercased severity is not `low` or `medium` (`High`, `CRITICAL`, unknown values) blocks the push.
+- `review.sh`: `AGENTS.md` and `CLAUDE.md` added to the built-in sensitive paths.
+- `review.sh`: diffs larger than `REVIEW_MAX_BYTES` (default 300000 bytes) are refused before ever reaching the reviewer ("push in smaller ranges") instead of being sent whole.
+- opencode agents (`orchestrator`, `worker`, `rescuer`, `reviewer`, `docs`): the `read` tool now denies `.env`/`.env.*` (opencode's own default is "ask", which `--auto` auto-approves); `.env.example` stays readable.
+- opencode `orchestrator` bash permission: added denies for short/typo `--no-verify` forms on `git commit`, case variants of `core.hooksPath`, force pushes, pushes to `prod`-named refs, and reading `.env` through `tac`/`sort`/`uniq`/`strings`/`od`/`xxd`/`base64`/`nl`/`find`.
+
+### Added
+- `review.sh`: per-repo extra sensitive paths via an optional `.review-paths` file at the repo root (one extended-regex pattern per line, OR-ed into the built-in list). Not shipped by the template.
 
 ### Changed
 - No backends: the copier `backend` question is gone. Claude Code runs on superpowers plus built-in subagents (Opus orchestrator); opencode runs on `.opencode/agents/` with a new `orchestrator` (gpt-6-sol, medium, default agent via `opencode.json`) and a new `rescuer` (gpt-6-sol, high); `worker`, `reviewer` and `docs` are `mode: all`.
