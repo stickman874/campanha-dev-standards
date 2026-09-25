@@ -8,6 +8,11 @@ permission:
   webfetch: deny
   websearch: deny
   external_directory: deny
+  read:
+    "*": allow
+    "*.env": deny
+    "*.env.*": deny
+    "*.env.example": allow
 ---
 
 You are a worker. Do exactly the task you were given, then stop.

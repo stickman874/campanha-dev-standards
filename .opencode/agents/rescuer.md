@@ -9,6 +9,11 @@ permission:
   webfetch: deny
   websearch: deny
   external_directory: deny
+  read:
+    "*": allow
+    "*.env": deny
+    "*.env.*": deny
+    "*.env.example": allow
 ---
 
 Another model got stuck on this task. Read the problem statement, the failing command and its output first; find the root cause before you edit anything. Then do exactly the task, and stop.

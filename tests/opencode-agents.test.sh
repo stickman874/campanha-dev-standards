@@ -43,10 +43,24 @@ for c in 'cat .env' 'cd app && cat .env.local' 'source .env.production' 'cat dep
   "echo ghp_$(t20 a 36)" "echo github_pat_$(t20 a 30)" "echo sk-proj-$(t20 a 20)" "echo sk-ant-$(t20 a 20)" "echo sk_live_$(t20 a 20)" "echo rk_live_$(t20 a 20)" \
   "echo xoxb-$(t20 1 10)" "echo xoxa-$(t20 1 10)" "echo xoxp-$(t20 1 10)" "echo xoxr-$(t20 1 10)" "echo xoxs-$(t20 1 10)" \
   "echo AKIA$(t20 A 16)" "echo ASIA$(t20 A 16)" "echo AIza$(t20 a 35)" "echo glpat-$(t20 a 20)" "echo sb_secret_$(t20 a 8)" \
-  "echo eyJ$(t20 a 8).eyJ$(t20 a 8).x" 'echo https://hooks.slack.com/services/T0/B0/x' "echo '-----BEGIN RSA PRIVATE KEY-----'"; do denied "$c"; done
+  "echo eyJ$(t20 a 8).eyJ$(t20 a 8).x" 'echo https://hooks.slack.com/services/T0/B0/x' "echo '-----BEGIN RSA PRIVATE KEY-----'" \
+  'git commit -n -m x' 'git commit -an -m x' 'git commit --no-ver -m x' 'git config core.hookspath /dev/null' 'git config CORE.HOOKSPATH /dev/null' \
+  'git push origin main:prod' 'git push origin prod' 'git push --force origin main' 'git push -f origin main' 'git push origin +main' \
+  'tac .env' 'sort .env' 'find . -name .env -exec cat {} +'; do denied "$c"; done
 allowed 'git status' 'STUB-git status'
 allowed 'git push origin main' 'STUB-git push origin main'
 allowed 'npx prisma migrate dev --name add_x' 'STUB-npx prisma migrate dev'
 allowed 'supabase db reset' 'STUB-supabase db reset'
 allowed 'git worktree add .opencode/worktrees/task-login -b task-login' 'STUB-git worktree add'
+allowed 'git commit -m x' 'STUB-git commit -m x'
+allowed 'git log -n 5' 'STUB-git log -n 5'
+allowed 'git push origin feature/login' 'STUB-git push origin feature/login'
+
+# read tool: .env must be denied, .env.example must succeed, for every agent
+for a in orchestrator worker rescuer reviewer docs; do
+  out=$(cd "$W" && PATH="$STUBPATH" timeout 60 opencode debug agent "$a" --tool read --params '{"filePath":".env"}' 2>&1)
+  assert_contains "$out" 'prevents you from using this specific tool call' "$a denies reading .env"
+  out=$(cd "$W" && PATH="$STUBPATH" timeout 60 opencode debug agent "$a" --tool read --params '{"filePath":".env.example"}' 2>&1)
+  printf '%s' "$out" | grep -qi 'prevents you from using this specific tool call' && { echo "  FAIL $a denied reading .env.example"; FAILS=$((FAILS+1)); } || echo "  ok  $a allows reading .env.example"
+done
 rm -rf "$W"; finish

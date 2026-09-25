@@ -6,6 +6,11 @@ reasoningEffort: medium
 permission:
   # Mirror of the Claude hooks (block-unsafe-bash.sh, block-secrets.sh), which do not run in opencode.
   # Each command is split into its parts and every part is checked; the last matching rule wins.
+  read:
+    "*": allow
+    "*.env": deny
+    "*.env.*": deny
+    "*.env.example": allow
   bash:
     "*": allow
     "*git *--no-verify*": deny
@@ -19,6 +24,24 @@ permission:
     "*prisma db push*": deny
     "*prisma migrate reset*": deny
     "*supabase db reset*--linked*": deny
+    "*git commit* -n*": deny
+    "*git commit* -an*": deny
+    "*git *--no-ve*": deny
+    "*git *ooks?ath*": deny
+    "*git *OOKS?ATH*": deny
+    "*git *push*prod*": deny
+    "*git *push*--force*": deny
+    "*git *push* -f*": deny
+    "*git *push* +*": deny
+    "*tac *.env*": deny
+    "*sort *.env*": deny
+    "*uniq *.env*": deny
+    "*strings *.env*": deny
+    "*od *.env*": deny
+    "*xxd *.env*": deny
+    "*base64 *.env*": deny
+    "*nl *.env*": deny
+    "*find *.env*": deny
     "*cat *.env*": deny
     "*less *.env*": deny
     "*more *.env*": deny

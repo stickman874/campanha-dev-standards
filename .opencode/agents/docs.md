@@ -14,6 +14,11 @@ permission:
     "*": deny
     "docs/**": allow
     "CHANGELOG.md": allow
+  read:
+    "*": allow
+    "*.env": deny
+    "*.env.*": deny
+    "*.env.example": allow
 ---
 
 You keep the living documentation current from a list of changed files. English only. Edit existing sections in place; never append history to current-state files; never invent behaviour you did not read in the code.
