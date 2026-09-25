@@ -16,31 +16,14 @@ if [ -f .review-paths ]; then
 fi
 all=; case ${1:-} in --all) all=1; shift;; esac
 explicit=${1:+1}
-# The LAST balanced-brace JSON object in $1 that decodes and has a "verdict" key, however deep in prose/fences it sits.
+# The LAST JSON object with a "verdict" key anywhere in $1 (prose, fences, pretty-printed): jq reads one value from each "{" and ignores what follows.
 extract_verdict_json() {
-  local text last i=0 len c depth start j inner
+  local text off json
   text=$(printf '%s' "$1" | tr -d '\r')
-  len=${#text}
-  while [ "$i" -lt "$len" ]; do
-    c=${text:$i:1}
-    if [ "$c" = '{' ]; then
-      depth=1; start=$i; j=$((i + 1))
-      while [ "$j" -lt "$len" ] && [ "$depth" -gt 0 ]; do
-        case "${text:$j:1}" in
-          '{') depth=$((depth + 1));;
-          '}') depth=$((depth - 1));;
-        esac
-        j=$((j + 1))
-      done
-      if [ "$depth" -eq 0 ]; then
-        inner=${text:$start:$((j - start))}
-        if printf '%s' "$inner" | jq -e 'has("verdict")' >/dev/null 2>&1; then last=$inner; fi
-        i=$j; continue
-      fi
-    fi
-    i=$((i + 1))
+  for off in $(printf '%s' "$text" | grep -ob '{' | cut -d: -f1 | sort -rn); do   # from the end: the first hit is the last object
+    json=$(printf '%s' "$text" | tail -c +$((off + 1)) | jq -cn 'input | select(type == "object" and has("verdict"))' 2>/dev/null) && [ -n "$json" ] && { printf '%s\n' "$json"; return; }
   done
-  [ -n "${last:-}" ] && printf '%s' "$last" | jq -c .
+  return 1
 }
 ranges() {   # "from to" lines; trees compared directly, so rollbacks are reviewed too
   if [ -n "${1:-}" ]; then echo "$1 ${2:-HEAD}"; return; fi
