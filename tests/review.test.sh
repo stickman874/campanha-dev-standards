@@ -16,6 +16,9 @@ case ${FAKE_MODE:-approve} in
   limit)    echo 'error.error="AI_APICallError: usage limit"' >&2; sleep 30;;
   pretty)   j=$(jq -n '{"verdict":"approve","findings":[{"severity":"low","file":"a.ts","line":1,"what":"nit","fix":"none"}]}');;
   fenced)   j=$(printf '```json\n%s\n```' "$(jq -n '{"verdict":"approve","findings":[{"severity":"low","file":"a.ts","line":1,"what":"nit","fix":"none"}]}')");;
+  bracesprose) j='Let me plan. {push_files} then {a} then I will answer. '"$(jq -n '{"verdict":"approve","findings":[{"severity":"low","file":"a.ts","line":1,"what":"nit","fix":"none"}]}')";;
+  upperhigh) j=$(jq -n '{"verdict":"approve","findings":[{"severity":"High","file":"a.ts","line":1,"what":"x","fix":"y"}]}');;
+  critical)  j=$(jq -n '{"verdict":"approve","findings":[{"severity":"CRITICAL","file":"a.ts","line":1,"what":"x","fix":"y"}]}');;
 esac
 jq -nc --arg t "$j" '{type:"text",part:{text:$t}}'; echo '{"type":"step_finish","part":{"tokens":{"total":1},"cost":0}}'
 EOF
@@ -38,6 +41,17 @@ mkdir -p "src/app/(app)/rh"; echo a > "src/app/(app)/rh/actions.ts"; git add -A;
 out=$(stdin | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "actions.ts (server action file) counts as sensitive"
 echo b >> opencode.json; git add -A; c opencode-config
 out=$(stdin | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "opencode.json counts as sensitive"
+git branch base2 HEAD
+stdin2() { printf 'refs/heads/main %s refs/heads/main %s\n' "$(git rev-parse HEAD)" "$(git rev-parse base2)"; }
+echo x > AGENTS.md; git add -A; c agents-md
+out=$(stdin2 | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "AGENTS.md alone counts as sensitive"
+git branch base3 HEAD
+stdin3() { printf 'refs/heads/main %s refs/heads/main %s\n' "$(git rev-parse HEAD)" "$(git rev-parse base3)"; }
+mkdir -p api; echo x > api/x.ts; git add -A; c api-x-routine
+out=$(stdin3 | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 0 "$code" "api/x.ts is routine without .review-paths"
+echo '^api/' > .review-paths; git add -A; c review-paths
+out=$(stdin3 | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "api/x.ts is sensitive with .review-paths"
+rm .review-paths; git add -A; c drop-review-paths
 mkdir -p src/app/api; echo h > src/app/api/r.ts; git add -A; c api
 out=$(stdin | FAKE_MODE=approve bash "$S" 2>&1); code=$?; assert_eq 0 "$code" "sensitive range approved passes"; assert_contains "$out" "range=$(git rev-parse base)..$(git rev-parse HEAD)" "logs range"
 out=$(stdin | FAKE_MODE=block bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "sensitive range blocked"
@@ -46,6 +60,9 @@ out=$(stdin | FAKE_MODE=prose bash "$S" 2>&1); code=$?; assert_eq 0 "$code" "JSO
 out=$(stdin | FAKE_MODE=junk bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "no JSON = block"; assert_contains "$out" 'no valid JSON' "explains"
 out=$(FAKE_MODE=pretty bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "pretty-printed multi-line JSON accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from pretty JSON printed"
 out=$(FAKE_MODE=fenced bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "fenced multi-line JSON accepted"; assert_contains "$out" '\[low\] a.ts:1' "finding from fenced JSON printed"
+out=$(FAKE_MODE=bracesprose bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "braces-in-prose before the verdict JSON: not fooled"; assert_contains "$out" '\[low\] a.ts:1' "finding from the real verdict JSON printed"
+out=$(FAKE_MODE=upperhigh bash "$S" base 2>&1); code=$?; assert_eq 1 "$code" "severity High (uppercase) blocks"
+out=$(FAKE_MODE=critical bash "$S" base 2>&1); code=$?; assert_eq 1 "$code" "severity CRITICAL (unknown) blocks"
 out=$(stdin | FAKE_MODE=limit bash "$S" 2>&1); code=$?; assert_eq 1 "$code" "reviewer unavailable = block"; assert_contains "$out" 'SKIP_REVIEW=1' "tells the human how to force"; assert_contains "$out" 'unavailable (DEEPSEEK_UNAVAILABLE: .*usage limit' "blocking line carries the reason"
 
 # runner: the opencode.sh next to review.sh (the template ships both); no plugin cache lookup
@@ -73,4 +90,8 @@ head -c 130000 /dev/zero | tr '\0' a > big.ts; git add -A; c big
 rm -f "$FAKE_ARGS"; out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?
 assert_eq 0 "$code" "big diff reviewed and approved"
 [ "$(wc -c < "$FAKE_ARGS")" -gt 130000 ] && echo "  ok  big diff reaches the reviewer whole" || { echo "  FAIL big diff cut short"; FAILS=$((FAILS+1)); }
+head -c 310000 /dev/zero | tr '\0' a > huge.ts; git add -A; c huge
+rm -f "$FAKE_ARGS"; out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?
+assert_eq 1 "$code" "diff over the size cap blocks"; assert_contains "$out" 'diff too large to review in one pass' "explains why"
+[ -e "$FAKE_ARGS" ] && { echo "  FAIL oversized diff called opencode"; FAILS=$((FAILS+1)); } || echo "  ok  oversized diff never calls opencode"
 cd - >/dev/null; rm -rf "$W"; finish

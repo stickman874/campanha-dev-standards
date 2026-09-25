@@ -9,9 +9,39 @@ set -u
 here=$(cd "$(dirname "$0")" && pwd)
 runner=${OPENCODE_SH:-$here/opencode.sh}
 z=0000000000000000000000000000000000000000; empty=4b825dc642cb6eb9a060e54bf8d69288fbee4904
-SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|actions|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/|opencode\.json|mise\.toml'
+SENSITIVE='auth|session|permission|payment|stripe|billing|src/app/api/|actions|server/|migrations|prisma/schema|lefthook|\.claude/|\.opencode/|^scripts/|opencode\.json|mise\.toml|AGENTS\.md|CLAUDE\.md'
+if [ -f .review-paths ]; then
+  extra=$(grep -vE '^[[:space:]]*(#|$)' .review-paths | paste -sd'|' -)
+  [ -n "$extra" ] && SENSITIVE="$SENSITIVE|$extra"
+fi
 all=; case ${1:-} in --all) all=1; shift;; esac
 explicit=${1:+1}
+# The LAST balanced-brace JSON object in $1 that decodes and has a "verdict" key, however deep in prose/fences it sits.
+extract_verdict_json() {
+  local text last i=0 len c depth start j inner
+  text=$(printf '%s' "$1" | tr -d '\r')
+  len=${#text}
+  while [ "$i" -lt "$len" ]; do
+    c=${text:$i:1}
+    if [ "$c" = '{' ]; then
+      depth=1; start=$i; j=$((i + 1))
+      while [ "$j" -lt "$len" ] && [ "$depth" -gt 0 ]; do
+        case "${text:$j:1}" in
+          '{') depth=$((depth + 1));;
+          '}') depth=$((depth - 1));;
+        esac
+        j=$((j + 1))
+      done
+      if [ "$depth" -eq 0 ]; then
+        inner=${text:$start:$((j - start))}
+        if printf '%s' "$inner" | jq -e 'has("verdict")' >/dev/null 2>&1; then last=$inner; fi
+        i=$j; continue
+      fi
+    fi
+    i=$((i + 1))
+  done
+  [ -n "${last:-}" ] && printf '%s' "$last" | jq -c .
+}
 ranges() {   # "from to" lines; trees compared directly, so rollbacks are reviewed too
   if [ -n "${1:-}" ]; then echo "$1 ${2:-HEAD}"; return; fi
   local lref lsha rref rsha seen=
@@ -37,8 +67,14 @@ while read -r from to; do
   if [ -z "$explicit$all" ] && ! printf '%s\n' "$changed" | grep -qiE "$SENSITIVE"; then
     echo "review: routine diff $from..$to, skipped (the night shift reviews it; bash scripts/review.sh $from reviews now)"; continue; fi
   [ -f "$runner" ] || { echo "review: $runner not found (run copier update --trust)" >&2; exit 1; }
-  start=$(date +%s)
   body=$(git diff "$from" "$to" --)
+  maxbytes=${REVIEW_MAX_BYTES:-300000}
+  bytes=$(printf '%s' "$body" | wc -c)
+  if [ "$bytes" -gt "$maxbytes" ]; then
+    echo "review: diff too large to review in one pass ($bytes bytes > $maxbytes); push in smaller ranges" >&2
+    rc=1; continue
+  fi
+  start=$(date +%s)
   out=$(OPENCODE_TIMEOUT=${REVIEW_TIMEOUT:-300} bash "$runner" "$PWD" reviewer <<EOF
 Adversarial code review of the change between commits $from and $to in this repository.
 Files changed:
@@ -55,12 +91,10 @@ EOF
   echo "review: range=$from..$to secs=$(( $(date +%s) - start ))"
   [ "$code" -eq 0 ] || { echo "$out"; echo "review: reviewer unavailable ($(printf '%s
 ' "$out" | head -1 | cut -c1-200)), push blocked. Fix the cause, or force it yourself: SKIP_REVIEW=1 git push" >&2; rc=1; continue; }
-  json=$(printf '%s\n' "$out" | tr -d '\r' | sed '/^```/d' | jq -c . 2>/dev/null | head -1)
-  [ -n "$json" ] || json=$(printf '%s\n' "$out" | tr -d '\r' | sed -n 's/^[^{]*\({.*}\)[^}]*$/\1/p; /^{/p' | head -1 | jq -c . 2>/dev/null)   # ponytail: the JSON object on the first line that holds one, prose around it ignored
-  [ "$(printf '%s\n' "$json" | wc -l)" -eq 1 ] || json=
+  json=$(extract_verdict_json "$out")
   [ -n "$json" ] || { echo "$out"; echo "review: no valid JSON verdict, blocked" >&2; rc=1; continue; }
   printf '%s' "$json" | jq -r '.findings[]? | "[\(.severity)] \(.file):\(.line) - \(.what) - \(.fix)"'
-  verdict=$(printf '%s' "$json" | jq -r '.verdict'); high=$(printf '%s' "$json" | jq '[.findings[]? | select(.severity=="high")] | length')
+  verdict=$(printf '%s' "$json" | jq -r '.verdict'); high=$(printf '%s' "$json" | jq '[.findings[]? | select((.severity | ascii_downcase) as $s | $s != "low" and $s != "medium")] | length')
   [ "$verdict" = approve ] && [ "$high" -eq 0 ] || { echo "review: blocked for $from..$to (verdict=$verdict, high findings=$high). Fix, commit, push again." >&2; rc=1; }
 done < <(ranges "$@")
 exit $rc
