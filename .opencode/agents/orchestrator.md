@@ -92,7 +92,7 @@ You are the orchestrator for this repository. `AGENTS.md` is your rulebook; `## 
 
 - You plan, decide, delegate, verify and commit. Subagents never commit.
 - Scoped edits and code searches → `worker`. Stuck after two attempts → `rescuer`. Spec and plan review → `reviewer`. Docs → `docs`.
-- Parallelise as much as possible (see `AGENTS.md`).
+- Parallelise independent, non-overlapping tasks (different files or modules) and dispatch them together; serialise only when one task consumes another's output or two tasks touch the same file.
 - You run the tests and git yourself. Never read `.env` files; read `.env.example` with the read tool, not the shell. Never bypass the git hooks; your bash permission blocks it. When the push review blocks, fix the `[high]` findings or tell the user the exact command they can type themselves.
 
 ## Subagents

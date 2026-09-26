@@ -15,8 +15,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 - On a quota or rate-limit error, fall back to the next option and say so in one line. No retry loops.
 
 ## Parallel work
-- Parallelise as much as possible: split work into independent, non-overlapping tasks (different files or modules) and dispatch them all at once.
-- Serialise only when one task consumes another's output or two tasks touch the same file. Sequential dispatch is the exception, not the default.
+- Parallelism comes from separate plans in separate sessions and worktrees, and from independent problems (bugs, investigations) dispatched together. Within one plan, follow the tool's process (Claude Code: superpowers, one task at a time).
 - Commit before dispatching: parallel workers start from the last commit in their own worktree and never see uncommitted changes.
 - Worktrees: whoever starts a dev server or other background process in a worktree stops it when the task ends (never `disown`); use a free port; remove the worktree when done.
 

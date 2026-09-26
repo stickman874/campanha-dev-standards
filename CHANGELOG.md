@@ -4,6 +4,16 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.7] - 2026-09-26
+
+### Changed
+- `AGENTS.md` `## Parallel work` no longer says "parallelise as much as possible": it contradicted superpowers' `subagent-driven-development` ("never dispatch multiple implementation subagents in parallel"). Parallelism now comes from separate plans in separate sessions/worktrees and from independent problems; within a plan, the tool's own process. Standard over custom.
+- `CLAUDE.md`: dropped the parallel-dispatch recipe from Delegation (the `dispatching-parallel-agents` skill covers it).
+- opencode orchestrator keeps its own parallelise rule, now stated in `orchestrator.md` instead of pointing at `AGENTS.md`.
+
+### Upgrading
+- `AGENTS.md`/`CLAUDE.md` are never rewritten by copier: replace the first two `## Parallel work` bullets with the template's one, and remove `Parallel: ...` from the Delegation line in `CLAUDE.md`.
+
 ## [0.5.6] - 2026-09-26
 
 ### Changed
