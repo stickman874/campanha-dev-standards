@@ -18,6 +18,7 @@ Write all docs, comments and commit messages in English. Product UI language: se
 - Parallelise as much as possible: split work into independent, non-overlapping tasks (different files or modules) and dispatch them all at once.
 - Serialise only when one task consumes another's output or two tasks touch the same file. Sequential dispatch is the exception, not the default.
 - Commit before dispatching: parallel workers start from the last commit in their own worktree and never see uncommitted changes.
+- Worktrees: whoever starts a dev server or other background process in a worktree stops it when the task ends (never `disown`); use a free port; remove the worktree when done.
 
 ## Code navigation
 - Prefer the language server over grep or reading whole files when the tool has one (the LSP tool in Claude Code and opencode): `workspaceSymbol` to find a definition, `findReferences` for usages, `goToDefinition`/`goToImplementation` to jump to source, `hover` for types without reading the file.

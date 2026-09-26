@@ -4,6 +4,14 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-09-26
+
+### Changed
+- `AGENTS.md` `## Parallel work`: whoever starts a dev server or background process in a worktree stops it when the task ends (never `disown`), uses a free port and removes the worktree. Leftover processes from parallel sessions made every Git Bash start take 3-5 s.
+
+### Upgrading
+- `AGENTS.md` is never rewritten by copier: add the new `Worktrees:` bullet to `## Parallel work` by hand.
+
 ## [0.5.5] - 2026-09-26
 
 ### Changed
