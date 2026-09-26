@@ -8,5 +8,5 @@
 - Push blocked: never bypass; the human can type `SKIP_REVIEW=1 git push` themselves.
 - Docs: the night shift refreshes them; run the `doc-keeper` agent (mode diff) only when the user asks or a feature ships.
 - Usage: never Agent Teams. Do not enable the Codex plugin's review gate.
-- Visual verification: a `sonnet` subagent drives headless Chrome via the Playwright CLI (viewports 1440×900 and 390×844), reads the screenshots, then deletes them.
+- Visual verification: a `sonnet` subagent drives headless Chrome via the Playwright CLI (viewports 1920×1080 and 402×874), reads the screenshots, then deletes them.
 - Ponytail level lite: smallest change at the right level — colours, components and business rules are fixed at the source, never in the screen.
