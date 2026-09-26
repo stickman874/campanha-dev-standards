@@ -42,12 +42,12 @@ To pull template updates later: `copier update --trust`. Files you edit by hand 
 - Commit gates: gitleaks (staged) and eslint, including design lint via `eslint-plugin-better-tailwindcss` (see `docs/dev/how-to/design-lint.md`).
 - Push gates (seconds): typecheck, tests, and a read-only DeepSeek review (`scripts/review.sh`, JSON findings, blocks on `high`) only when the diff touches auth, API handlers, db or the gates. Repos add their own extra sensitive paths in `.review-paths` (one regex per line, not shipped by the template). Humans can force with `SKIP_REVIEW=1 git push` (commit the log); agents are blocked from it (opencode: see the known gap in the v4 spec).
 - Night shift (`scripts/nightly.sh`, systemd timer on your server, see `deploy/nightly/`): semgrep, trivy, Socket, full review and a docs refresh over everything pushed that day → branch `nightly/<date>` + `docs/dev/reviews/<date>.md`.
-- Process: Claude Code follows superpowers (brainstorm → spec → plan → execution), with Codex reviewing specs and plans (`codex:codex-rescue`, read-only); opencode follows the `## opencode` contract in `AGENTS.md`. Both orchestrators parallelise as much as possible.
+- Process: Claude Code follows superpowers (brainstorm → spec → plan → execution), with Codex reviewing specs and plans (`codex:codex-rescue`, read-only); opencode follows the `## Subagents` contract in `.opencode/agents/orchestrator.md`. Both orchestrators parallelise as much as possible.
 - Claude hooks: `block-secrets.sh` (secret shapes in command text) and `block-unsafe-bash.sh` (`--no-verify`, `hooksPath`, `prisma db push`/`reset`, `supabase db reset --linked`).
 - Secrets: sandbox + `permissions.deny` in the Claude settings template; opencode denies dotenv reads natively and the `orchestrator` agent's bash permission mirrors the Claude hooks.
 - One unattended runner, `scripts/opencode.sh` (`opencode run --format json`), shipped next to `scripts/review.sh` and used by the night shift.
 - `doc-keeper` agent (mode `diff` on request or when a feature ships, `bootstrap` on adopt, `consolidate` weekly) keeps `docs/dev`, `docs/product` and CHANGELOG current.
-- Official plugins enabled by the settings template: superpowers, security-guidance, commit-commands, typescript-lsp, playwright, codex, impeccable.
+- Plugins enabled by the settings template: core, superpowers, typescript-lsp, codex. Kept lean on purpose (see `docs/superpowers/research/2026-09-26-slowness-and-slim-down.md`). impeccable is known but off: turn it on in a project for UI work. Browser checks use the Playwright CLI, not the plugin.
 - UI components: shadcn standard (Base UI) first, ReUI (MCP + `reui` skill, installed globally with `REUI_GLOBAL=1 curl -fsSL https://mcp.reui.io/install | node -`) only when shadcn has nothing that fits. Rule in `template/AGENTS.md`, `template/.claude/rules/frontend.md`, how-to in `template/docs/dev/how-to/ui-components.md`.
 
 ## Upgrading to 0.5.0 (any tool)

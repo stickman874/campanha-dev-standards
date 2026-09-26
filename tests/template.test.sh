@@ -14,7 +14,7 @@ assert_eq orchestrator "$(jq -r .default_agent "$T/opencode.json")" "opencode de
 [ -f "$T/scripts/opencode.sh" ] && [ -f "$T/scripts/review.sh" ] && echo "  ok  runner ships next to review.sh" || { echo "  FAIL scripts missing"; FAILS=$((FAILS+1)); }
 assert_contains "$(cat "$T/mise.toml")" '^OPENCODE_EXPERIMENTAL_LSP_TOOL = "true"' "LSP tool for interactive opencode"
 assert_eq "" "$(grep -n 'core:worker\|core:rescue\|core:review\|core:handoff\|worker\.sh\|backend' "$T/AGENTS.md" "$T/CLAUDE.md" "$T/.copier-answers.yml")" "no obsolete references"
-assert_contains "$(cat "$T/AGENTS.md")" '^## opencode' "opencode contract section"
+assert_contains "$(cat "$T/.opencode/agents/orchestrator.md")" '^## Subagents' "opencode contract section"
 assert_contains "$(cat "$T/AGENTS.md")" '^## Parallel work' "parallelise rule"
 assert_contains "$(cat "$T/CLAUDE.md")" 'codex:codex-rescue' "spec/plan review by Codex"
 [ "$(wc -l < "$T/AGENTS.md")" -le 150 ] && echo "  ok  AGENTS.md <= 150 lines" || { echo "  FAIL AGENTS.md too long"; FAILS=$((FAILS+1)); }

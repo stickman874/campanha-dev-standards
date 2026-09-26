@@ -4,6 +4,17 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-09-26
+
+### Changed
+- Settings template enables only core, superpowers, typescript-lsp and codex. Dropped security-guidance (11 hooks), commit-commands, playwright (use the Playwright CLI) and impeccable (turn it on per project for UI work). Why and the measurements: `docs/superpowers/research/2026-09-26-slowness-and-slim-down.md`.
+- `/adopt`: existing repos copy the template's `enabledPlugins` block and drop the four plugins above.
+- The opencode worker contract moved from `AGENTS.md` (`## opencode`) to `.opencode/agents/orchestrator.md` (`## Subagents`): only the opencode orchestrator uses it, and Claude Code no longer loads ~1.8 KB of it every session.
+
+### Upgrading
+- `copier update --trust` does not touch `.claude/`: in each adopted repo, edit `.claude/settings.json` by hand to match the template's `enabledPlugins`.
+- `copier update --trust` refreshes `.opencode/agents/orchestrator.md`; then delete the `## opencode` section from your `AGENTS.md` by hand (copier never rewrites it) and point the `## Models` opencode line at the orchestrator file.
+
 ## [0.5.4] - 2026-09-25
 
 ### Security

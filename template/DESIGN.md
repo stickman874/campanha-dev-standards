@@ -27,4 +27,4 @@ Source of truth for visual decisions; every screen uses only what is listed here
 
 - No inline colours or sizes; use tokens and canonical components only.
 - Missing a piece? shadcn (Base UI) first, then ReUI (MCP + `reui` skill), then your own shared component — in that order. Register it here, never inline.
-- Run impeccable to regenerate this file after design changes.
+- Run impeccable to regenerate this file after design changes (enable `impeccable@impeccable` in `.claude/settings.json` first; it is off by default).

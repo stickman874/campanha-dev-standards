@@ -2,12 +2,8 @@
   "enabledPlugins": {
     "core@campanha-dev-standards": true,
     "superpowers@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
-    "codex@openai-codex": true,
-    "impeccable@impeccable": true
+    "codex@openai-codex": true
   },
   "extraKnownMarketplaces": {
     "campanha-dev-standards": { "source": { "source": "github", "repo": "stickman874/campanha-dev-standards" } },
