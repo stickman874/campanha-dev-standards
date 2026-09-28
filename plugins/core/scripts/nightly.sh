@@ -11,7 +11,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 cd "$repo" || exit 2
 day=$(date -u +%F); branch=nightly/$day; report=docs/dev/reviews/$day.md; state=$(git rev-parse --git-dir)/nightly-last
 git fetch -q origin main && git checkout -q -B "$branch" origin/main && git clean -fdq docs -e 'docs/dev/reviews/skipped.log' -e 'docs/dev/reviews/.zdr-confirmed' || { echo "nightly: fetch or checkout failed" >&2; exit 1; }
-[ -n "${OPENCODE_SH:-}" ] || { if [ -f scripts/opencode.sh ]; then OPENCODE_SH=$PWD/scripts/opencode.sh; else OPENCODE_SH=$here/opencode.sh; fi; }
+[ -n "${OPENCODE_SH:-}" ] || { if [ -f scripts/opencode.sh ]; then OPENCODE_SH=$PWD/scripts/opencode.sh; else OPENCODE_SH=$here/../../../template/scripts/opencode.sh; fi; }
 export OPENCODE_SH   # review.sh reads it too
 to=$(git rev-parse origin/main); from=$(cat "$state" 2>/dev/null || git rev-parse --verify -q "origin/main~20" 2>/dev/null || echo 4b825dc642cb6eb9a060e54bf8d69288fbee4904)
 [ "$from" != "$to" ] || { echo "nightly: no new commits since $from"; exit 0; }

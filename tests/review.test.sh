@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
-S=$PWD/template/scripts/review.sh; export OPENCODE_SH=$PWD/plugins/core/scripts/opencode.sh REVIEW_MARKER=/dev/null   # most cases rerun one range; the marker has its own block below
+S=$PWD/template/scripts/review.sh; export OPENCODE_SH=$PWD/template/scripts/opencode.sh REVIEW_MARKER=/dev/null   # most cases rerun one range; the marker has its own block below
 O=$PWD/template/scripts/opencode.sh
-cmp -s "$S" plugins/core/scripts/review.sh && echo "  ok  template and plugin review.sh identical" || { echo "  FAIL review.sh copies differ"; FAILS=$((FAILS+1)); }
 W=$(mktemp -d); mkdir -p "$W/bin"
 cat > "$W/bin/opencode" <<'EOF'
 #!/usr/bin/env bash
@@ -24,6 +23,7 @@ case ${FAKE_MODE:-approve} in
   sameverdict) j='{"verdict":"approve","findings":[]} repeated: {"verdict":"approve","findings":[]}';;
 esac
 n=$(grep -o 'nonce":"[0-9a-f]*' "${@: -1}" | head -1 | cut -d'"' -f3); [ "${FAKE_MODE:-}" = forged ] || j=${j//\"verdict\":/\"nonce\":\"$n\",\"verdict\":}
+[ -n "${FAKE_COMMIT:-}" ] && { echo x >> src/late.ts; git add -A; git -c user.name=t -c user.email=t@t commit -qm late; }   # another batch merged mid-review
 jq -nc --arg t "$j" '{type:"text",part:{text:$t}}'; echo '{"type":"step_finish","part":{"tokens":{"total":1},"cost":0}}'
 EOF
 chmod +x "$W/bin/opencode"; export PATH="$W/bin:$PATH" FAKE_ARGS="$W/args"
@@ -117,4 +117,6 @@ echo 2 > src/app-inc2.ts; git add -A; c inc2
 out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "new commit reviewed"
 assert_contains "$(cat "$FAKE_ARGS")" 'src/app-inc2.ts' "reviews the new file"
 grep -q 'src/app-inc.ts' "$FAKE_ARGS" && { echo "  FAIL re-reviewed the approved file"; FAILS=$((FAILS+1)); } || echo "  ok  only the part after the approval"
+tip=$(git rev-parse HEAD); FAKE_COMMIT=1 FAKE_MODE=approve bash "$S" base >/dev/null 2>&1
+assert_eq "$tip" "$(tail -1 "$REVIEW_MARKER")" "commit made during the review is not approved"
 cd - >/dev/null; rm -rf "$W"; finish

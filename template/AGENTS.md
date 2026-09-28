@@ -15,9 +15,13 @@ Write all docs, comments and commit messages in English. Product UI language: se
 - On a quota or rate-limit error, fall back to the next option and say so in one line. No retry loops.
 
 ## Parallel work
-- Parallelism comes from separate plans in separate sessions and worktrees, and from independent problems (bugs, investigations) dispatched together. Within one plan, follow the tool's process (Claude Code: superpowers, one task at a time).
+- Execute a plan in batches: tasks that touch the same files go in one batch, in order. Batches are independent when they change no file in common and neither needs the other's output; independent batches run in parallel, one worker each in its own worktree. A dependent batch starts from the commit that already contains its prerequisites. Never queue several batches on one worker.
+- The orchestrator merges: one batch at a time, in dependency order; it reads the diff, resolves conflicts itself, and reruns the affected tests on the merged result.
+- No review per task. After merging a batch that touches sensitive paths, start the background `scripts/review.sh` (see Gates); routine batches get the orchestrator's reading now and the night shift's review later. Measured: per-task review loops took most of each task's 13-42 min and still missed a defect the push review found; background reviews took 5-6 min per batch and caught 1 high and 2 medium before the push.
+- Don't wait idle: while a worker, a review or a push runs, start the next independent batch if there is one. Before calling the plan done, collect every worker and review result.
+- Separate plans run in separate sessions and worktrees; independent problems (bugs, investigations) are dispatched together.
 - Commit before dispatching: parallel workers start from the last commit in their own worktree and never see uncommitted changes.
-- Worktrees: whoever starts a dev server or other background process in a worktree stops it when the task ends (never `disown`); use a free port; remove the worktree when done.
+- Worktrees: whoever starts a dev server or other background process in a worktree stops it when its batch is merged (never `disown`); use a free port; the orchestrator removes the worktree after merging the batch.
 
 ## Code navigation
 - Prefer the language server over grep or reading whole files when the tool has one (the LSP tool in Claude Code and opencode): `workspaceSymbol` to find a definition, `findReferences` for usages, `goToDefinition`/`goToImplementation` to jump to source, `hover` for types without reading the file.

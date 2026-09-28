@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# plugins/core/scripts/opencode.sh
+# scripts/opencode.sh
 # Runs one project opencode agent unattended and returns its final text. Shared by review.sh and nightly.sh.
 #   opencode.sh <repo> <agent> < prompt
 # Env: OPENCODE_MODEL (adds -m provider/model), OPENCODE_TIMEOUT (seconds, 600), OPENCODE_EVENTS (save the raw JSON events here).

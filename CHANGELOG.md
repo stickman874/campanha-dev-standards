@@ -4,6 +4,21 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.9] - 2026-09-28
+
+### Changed
+- Plan execution runs in batches instead of superpowers' `subagent-driven-development` (partly reverts 0.5.7). `AGENTS.md` `## Parallel work`: tasks touching the same files form one batch; independent batches run in parallel, one worker per worktree; no review per task (the orchestrator reads the diff and runs the tests, then the background `review.sh`); never wait idle on a worker, review or push. `CLAUDE.md` Process: superpowers for brainstorm → spec → plan only. Measured in one project (session diagnosis 2026-09-28): 4 tasks took 91 min in series with per-task reviews that still missed a defect the push review found; background reviews per batch took 5-6 min and caught 1 high and 2 medium. Upstream reports the same cost (obra/superpowers #716, #1538, #1917).
+- opencode `orchestrator.md`: one worker and worktree per batch, merged in dependency order.
+
+### Removed
+- `plugins/core/scripts/review.sh` and `opencode.sh`: unused copies of the template's scripts (projects get theirs from copier). `nightly.sh` falls back to `template/scripts/opencode.sh`.
+
+### Fixed
+- `review.sh <base>` pins the tip commit when it starts: a commit made while the review ran was recorded as approved without being reviewed.
+
+### Upgrading
+- `AGENTS.md`/`CLAUDE.md` are never rewritten by copier: replace the whole `## Parallel work` section with the template's, and the whole Process bullet in `CLAUDE.md` with the template's. `copier update --trust` brings the new `scripts/review.sh` and `.opencode/agents/orchestrator.md`.
+
 ## [0.5.8] - 2026-09-28
 
 ### Changed

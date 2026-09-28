@@ -31,7 +31,7 @@ extract_verdict_json() {
   [ -n "$found" ] && printf '%s\n' "$found"
 }
 ranges() {   # "from to" lines; trees compared directly, so rollbacks are reviewed too
-  if [ -n "${1:-}" ]; then echo "$1 ${2:-HEAD}"; return; fi
+  if [ -n "${1:-}" ]; then echo "$1 $(git rev-parse -q --verify "${2:-HEAD}" || echo "${2:-HEAD}")"; return; fi   # tip pinned now: commits made while the review runs are not approved
   local lref lsha rref rsha seen=
   if [ ! -t 0 ]; then while read -r lref lsha rref rsha; do
     seen=1; [ "${lsha:-$z}" = "$z" ] && continue                                 # branch deletion

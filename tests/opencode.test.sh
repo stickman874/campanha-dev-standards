@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tests/opencode.test.sh
 source "$(dirname "$0")/lib.sh"
-S="$PWD/plugins/core/scripts/opencode.sh"
+S="$PWD/template/scripts/opencode.sh"
 W=$(mktemp -d); mkdir -p "$W/bin" "$W/repo/.opencode/agents"
 printf -- '---\ndescription: t\n---\n' > "$W/repo/.opencode/agents/worker.md"
 git -C "$W/repo" init -q
@@ -59,6 +59,5 @@ out=$(echo x | run ok "$W/repo" worker 2>/dev/null); assert_eq "Summary: done" "
 rm "$W/repo/.copier-answers.yml"
 out=$(echo x | CAMPANHA_BACKEND=claude run ok "$W/repo" worker 2>/dev/null); assert_eq "Summary: done" "$out" "CAMPANHA_BACKEND ignored"
 out=$(echo x | run ok "$W/repo" reviewer 2>/dev/null); code=$?; assert_eq 3 "$code" "missing agent: exit 3"; assert_contains "$out" 'run copier update --trust' "missing agent names the upgrade command"
-cmp -s plugins/core/scripts/opencode.sh template/scripts/opencode.sh && echo "  ok  template and plugin opencode.sh identical" || { echo "  FAIL opencode.sh copies differ"; FAILS=$((FAILS+1)); }
 
 rm -rf "$W"; finish

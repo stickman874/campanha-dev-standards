@@ -20,7 +20,7 @@ mkdir -p .opencode/agents docs/dev/reviews src scripts; cp "$OLDPWD"/template/.o
 echo "# arch" > docs/dev/architecture.md; touch docs/dev/reviews/.gitkeep; echo a > src/a.ts
 printf 'backend: claude\n' > .copier-answers.yml
 git add -A; git -c user.name=t -c user.email=t@t commit -qm init; git push -q origin main
-export OPENCODE_SH=$OLDPWD/plugins/core/scripts/opencode.sh GIT_AUTHOR_NAME=n GIT_AUTHOR_EMAIL=n@n GIT_COMMITTER_NAME=n GIT_COMMITTER_EMAIL=n@n
+export OPENCODE_SH=$OLDPWD/template/scripts/opencode.sh GIT_AUTHOR_NAME=n GIT_AUTHOR_EMAIL=n@n GIT_COMMITTER_NAME=n GIT_COMMITTER_EMAIL=n@n
 day=$(date -u +%F)
 out=$(bash "$S" "$W/repo" 2>&1); code=$?
 assert_eq 0 "$code" "first run exits 0"
@@ -51,7 +51,7 @@ out=$(bash "$S" "$W/repo" 2>&1); code=$?; assert_eq 0 "$code" "run with semgrep 
 git checkout -q main; echo f >> src/a.ts; git commit -qam f; git push -q origin main
 out=$(env -u OPENCODE_SH bash "$S" "$W/repo" 2>&1); code=$?
 assert_eq 0 "$code" "no repo runner: falls back to the plugin's"
-export MARK="$W/mark" REAL="$OLDPWD/plugins/core/scripts/opencode.sh"
+export MARK="$W/mark" REAL="$OLDPWD/template/scripts/opencode.sh"
 git checkout -q main; printf '#!/usr/bin/env bash\ntouch "$MARK"; exec bash "$REAL" "$@"\n' > scripts/opencode.sh; echo g >> src/a.ts; git add -A; git commit -qm g; git push -q origin main
 rm -f "$MARK"; out=$(env -u OPENCODE_SH bash "$S" "$W/repo" 2>&1); code=$?
 assert_eq 0 "$code" "repo runner run exits 0"
