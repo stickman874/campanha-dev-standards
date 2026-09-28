@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
-S=$PWD/template/scripts/review.sh; export OPENCODE_SH=$PWD/plugins/core/scripts/opencode.sh
+S=$PWD/template/scripts/review.sh; export OPENCODE_SH=$PWD/plugins/core/scripts/opencode.sh REVIEW_MARKER=/dev/null   # most cases rerun one range; the marker has its own block below
 O=$PWD/template/scripts/opencode.sh
 cmp -s "$S" plugins/core/scripts/review.sh && echo "  ok  template and plugin review.sh identical" || { echo "  FAIL review.sh copies differ"; FAILS=$((FAILS+1)); }
 W=$(mktemp -d); mkdir -p "$W/bin"
@@ -104,4 +104,17 @@ head -c 310000 /dev/zero | tr '\0' a > huge.ts; git add -A; c huge
 rm -f "$FAKE_ARGS"; out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?
 assert_eq 1 "$code" "diff over the size cap blocks"; assert_contains "$out" 'diff too large to review in one pass' "explains why"
 [ -e "$FAKE_ARGS" ] && { echo "  FAIL oversized diff called opencode"; FAILS=$((FAILS+1)); } || echo "  ok  oversized diff never calls opencode"
+# approvals are remembered: later runs review only what came after
+git checkout -q -b inc base; echo 1 > src/app-inc.ts; git add -A; c inc1; export REVIEW_MARKER="$W/marker"
+out=$(FAKE_MODE=block bash "$S" base 2>&1); code=$?; assert_eq 1 "$code" "blocked range"
+[ -s "$REVIEW_MARKER" ] && { echo "  FAIL block wrote the marker"; FAILS=$((FAILS+1)); } || echo "  ok  block leaves no marker"
+out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "approved range remembered"
+rm -f "$FAKE_ARGS"; out=$(FAKE_MODE=block bash "$S" base 2>&1); code=$?
+assert_eq 0 "$code" "already approved: nothing new to review"; [ -e "$FAKE_ARGS" ] && { echo "  FAIL approved range reviewed again"; FAILS=$((FAILS+1)); } || echo "  ok  approved range not reviewed again"
+out=$(printf 'refs/heads/inc %s refs/heads/inc %s\n' "$(git rev-parse HEAD)" "$(git rev-parse base)" | FAKE_MODE=block bash "$S" --all 2>&1); code=$?
+assert_eq 1 "$code" "--all ignores the marker"
+echo 2 > src/app-inc2.ts; git add -A; c inc2
+out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "new commit reviewed"
+assert_contains "$(cat "$FAKE_ARGS")" 'src/app-inc2.ts' "reviews the new file"
+grep -q 'src/app-inc.ts' "$FAKE_ARGS" && { echo "  FAIL re-reviewed the approved file"; FAILS=$((FAILS+1)); } || echo "  ok  only the part after the approval"
 cd - >/dev/null; rm -rf "$W"; finish

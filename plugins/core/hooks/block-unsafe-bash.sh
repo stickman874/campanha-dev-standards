@@ -15,7 +15,7 @@ printf '%s' "$cmd" | grep -Eq -- "${seg}git[[:space:]]+${args}commit${args}[[:sp
   && deny "Git hooks are the quality gate. Never bypass them; fix what the hook reports."
 printf '%s' "$cmd" | grep -Eiq -- "${seg}git[[:space:]]+${args}['\"]?core\\.hookspath" \
   && deny "Git hooks are the quality gate. Never bypass them; fix what the hook reports."
-printf '%s' "$cmd" | grep -Eq -- "${seg}((export|declare[[:space:]]+-x)[[:space:]]+)?(SKIP_REVIEW=(\"1\"|'1'|1)|LEFTHOOK=(\"0\"|'0'|0)|LEFTHOOK_EXCLUDE=|OPENCODE_SH=)" \
+printf '%s' "$cmd" | grep -Eq -- "${seg}((export|declare[[:space:]]+-x)[[:space:]]+)?(SKIP_REVIEW=(\"1\"|'1'|1)|LEFTHOOK=(\"0\"|'0'|0)|LEFTHOOK_EXCLUDE=|OPENCODE_SH=|REVIEW_MARKER=)" \
   && deny "Skipping the review is the human's call, not yours. Tell the user why it blocked and the exact command they can type themselves."
 # force pushes and pushes targeting a prod-named ref
 printf '%s' "$cmd" | grep -Eq -- "${seg}git[[:space:]]+${args}push${args}(--force(-with-lease)?|[[:space:]]-f\\b|[[:space:]]\\+)" \

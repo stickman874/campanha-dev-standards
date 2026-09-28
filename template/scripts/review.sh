@@ -3,6 +3,7 @@
 #   review.sh                  ranges from git's pre-push stdin (lefthook use_stdin) — only ranges touching sensitive paths; routine ones are skipped
 #   review.sh <from> [<to>]    explicit range (to = HEAD) — always reviewed
 #   review.sh --all            stdin ranges, every range reviewed (night shift)
+# Approved commits are remembered in .git/review-approved: later runs (the push too) review only what came after. --all ignores it.
 # Blocks (exit 1) on verdict block, any high finding, no valid JSON, or reviewer unavailable. Never approves on failure.
 # SKIP_REVIEW=1 git push (typed by a human, never by an agent): skips and logs the range to docs/dev/reviews/skipped.log; the night shift reviews it.
 set -u
@@ -47,8 +48,15 @@ if [ "${SKIP_REVIEW:-}" = 1 ]; then
   echo "review: skipped by SKIP_REVIEW=1 (logged in docs/dev/reviews/skipped.log; the night shift reviews it)"
   echo "review: commit docs/dev/reviews/skipped.log with your next commit so the night shift sees it"; exit 0
 fi
+marker=${REVIEW_MARKER:-$(git rev-parse --git-common-dir 2>/dev/null)/review-approved}   # common dir: approvals made in a worktree count for the push
 rc=0
 while read -r from to; do
+  if [ -z "$all" ] && [ -s "$marker" ]; then   # ponytail: a hand-written marker line skips review until the night shift's --all
+    for ok in $(tac "$marker"); do
+      git merge-base --is-ancestor "$from" "$ok" 2>/dev/null && git merge-base --is-ancestor "$ok" "$to" 2>/dev/null || continue
+      echo "review: already approved up to $ok"; from=$ok; break
+    done
+  fi
   changed=$(git diff --name-only "$from" "$to" -- 2>/dev/null) || { echo "review: cannot diff $from $to" >&2; exit 1; }
   [ -n "$changed" ] || continue
   if [ -z "$explicit$all" ] && ! printf '%s\n' "$changed" | grep -qiE "$SENSITIVE"; then
@@ -85,6 +93,7 @@ EOF
   [ -n "$json" ] || { echo "$out"; echo "review: no valid JSON verdict, blocked" >&2; rc=1; continue; }
   printf '%s' "$json" | jq -r '.findings[]? | "[\(.severity)] \(.file):\(.line) - \(.what) - \(.fix)"'
   verdict=$(printf '%s' "$json" | jq -r '.verdict'); high=$(printf '%s' "$json" | jq '[.findings[]? | select((.severity | ascii_downcase) as $s | $s != "low" and $s != "medium")] | length')
-  [ "$verdict" = approve ] && [ "$high" -eq 0 ] || { echo "review: blocked for $from..$to (verdict=$verdict, high findings=$high). Fix, commit, push again." >&2; rc=1; }
+  if [ "$verdict" = approve ] && [ "$high" -eq 0 ]; then git rev-parse "$to" >> "$marker"
+  else echo "review: blocked for $from..$to (verdict=$verdict, high findings=$high). Fix, commit, push again." >&2; rc=1; fi
 done < <(ranges "$@")
 exit $rc

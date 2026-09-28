@@ -4,6 +4,15 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-09-28
+
+### Changed
+- `review.sh` remembers approved commits in `.git/review-approved` (the shared git dir, so worktrees count) and reviews only what came after the last approval. `AGENTS.md` asks for a background review after each batch of commits, so the push finds nothing new. Measured before: the review took 435-722 s of a push whose typecheck and tests took 33 s, and it caught a migration bug only at push. `--all` (the night shift) ignores the marker and still reviews everything.
+- `core` hook: `REVIEW_MARKER=` in a Bash command is blocked like `SKIP_REVIEW=1`.
+
+### Upgrading
+- `copier update --trust` brings the new `scripts/review.sh`. `AGENTS.md` is never rewritten: in `## Gates`, replace the push line's last sentence ("On demand: ...") with the template's.
+
 ## [0.5.7] - 2026-09-26
 
 ### Changed
