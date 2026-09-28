@@ -4,6 +4,14 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.11] - 2026-09-28
+
+### Fixed
+- opencode `orchestrator.md`: bash denies `REVIEW_MARKER=` and any command naming `review-approved`, so the agent cannot forge an approval and skip the push review. Found by the push review in `home-os`.
+
+### Upgrading
+- `copier update --trust`.
+
 ## [0.5.10] - 2026-09-28
 
 ### Fixed
