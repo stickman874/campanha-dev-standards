@@ -118,5 +118,9 @@ out=$(FAKE_MODE=approve bash "$S" base 2>&1); code=$?; assert_eq 0 "$code" "new 
 assert_contains "$(cat "$FAKE_ARGS")" 'src/app-inc2.ts' "reviews the new file"
 grep -q 'src/app-inc.ts' "$FAKE_ARGS" && { echo "  FAIL re-reviewed the approved file"; FAILS=$((FAILS+1)); } || echo "  ok  only the part after the approval"
 tip=$(git rev-parse HEAD); FAKE_COMMIT=1 FAKE_MODE=approve bash "$S" base >/dev/null 2>&1
-assert_eq "$tip" "$(tail -1 "$REVIEW_MARKER")" "commit made during the review is not approved"
+assert_eq "$tip" "$(tail -1 "$REVIEW_MARKER" | cut -d' ' -f2)" "commit made during the review is not approved"
+git checkout -q -b hole base; echo 1 > src/app-hole.ts; git add -A; c unreviewed; echo 2 > src/app-hole2.ts; git add -A; c later
+FAKE_MODE=approve bash "$S" HEAD~1 >/dev/null 2>&1   # background review started after an unreviewed commit
+rm -f "$FAKE_ARGS"; FAKE_MODE=approve bash "$S" base >/dev/null 2>&1
+grep -q 'src/app-hole.ts' "$FAKE_ARGS" 2>/dev/null && echo "  ok  commits before the approved base are still reviewed" || { echo "  FAIL approval skipped commits it never reviewed"; FAILS=$((FAILS+1)); }
 cd - >/dev/null; rm -rf "$W"; finish

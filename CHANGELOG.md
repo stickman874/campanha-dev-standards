@@ -4,6 +4,14 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+## [0.5.10] - 2026-09-28
+
+### Fixed
+- `review.sh`: `.git/review-approved` stores `base tip` per approval, and a tip skips review only when its review started at or before the push's base. Before, a background review started after an unreviewed commit let that commit reach the push without being diffed. Old one-SHA lines are ignored (those commits are reviewed again). Found by the push review in `manage`.
+
+### Upgrading
+- `copier update --trust`.
+
 ## [0.5.9] - 2026-09-28
 
 ### Changed

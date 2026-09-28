@@ -51,10 +51,13 @@ fi
 marker=${REVIEW_MARKER:-$(git rev-parse --git-common-dir 2>/dev/null)/review-approved}   # common dir: approvals made in a worktree count for the push
 rc=0
 while read -r from to; do
-  if [ -z "$all" ] && [ -s "$marker" ]; then   # ponytail: a hand-written marker line skips review until the night shift's --all
-    for ok in $(tac "$marker"); do
-      git merge-base --is-ancestor "$from" "$ok" 2>/dev/null && git merge-base --is-ancestor "$ok" "$to" 2>/dev/null || continue
-      echo "review: already approved up to $ok"; from=$ok; break
+  if [ -z "$all" ] && [ -s "$marker" ]; then   # "base tip" lines: a tip counts only if its review started at or before $from. ponytail: a hand-written line skips review until the night shift's --all
+    moved=1; while [ -n "$moved" ]; do moved=
+      while read -r okb okt; do
+        [ -n "$okt" ] && [ "$(git rev-parse -q --verify "$from")" != "$okt" ] || continue
+        git merge-base --is-ancestor "$okb" "$from" 2>/dev/null && git merge-base --is-ancestor "$from" "$okt" 2>/dev/null && git merge-base --is-ancestor "$okt" "$to" 2>/dev/null || continue
+        echo "review: already approved up to $okt"; from=$okt; moved=1; break
+      done < <(tac "$marker")
     done
   fi
   changed=$(git diff --name-only "$from" "$to" -- 2>/dev/null) || { echo "review: cannot diff $from $to" >&2; exit 1; }
@@ -93,7 +96,7 @@ EOF
   [ -n "$json" ] || { echo "$out"; echo "review: no valid JSON verdict, blocked" >&2; rc=1; continue; }
   printf '%s' "$json" | jq -r '.findings[]? | "[\(.severity)] \(.file):\(.line) - \(.what) - \(.fix)"'
   verdict=$(printf '%s' "$json" | jq -r '.verdict'); high=$(printf '%s' "$json" | jq '[.findings[]? | select((.severity | ascii_downcase) as $s | $s != "low" and $s != "medium")] | length')
-  if [ "$verdict" = approve ] && [ "$high" -eq 0 ]; then git rev-parse "$to" >> "$marker"
+  if [ "$verdict" = approve ] && [ "$high" -eq 0 ]; then echo "$(git rev-parse "$from") $(git rev-parse "$to")" >> "$marker"
   else echo "review: blocked for $from..$to (verdict=$verdict, high findings=$high). Fix, commit, push again." >&2; rc=1; fi
 done < <(ranges "$@")
 exit $rc
