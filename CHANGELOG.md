@@ -4,6 +4,9 @@ All notable changes to this project are documented here. Format: [Keep a Changel
 
 ## [Unreleased]
 
+### Fixed
+- `nightly.sh`: `checkout -f` onto `origin/main`, so a run that left `docs/dev/reviews/skipped.log` modified (emptied but not committed) no longer blocks every later run with "fetch or checkout failed". Found in `manage` (runs failed 2026-09-28/29).
+
 ## [0.5.11] - 2026-09-28
 
 ### Fixed
